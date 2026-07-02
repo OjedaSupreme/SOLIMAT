@@ -199,9 +199,9 @@
   .token-card.corto{border-color:rgba(180,83,9,.45);background:linear-gradient(145deg,#fffbf5 0%,#fef3e2 100%)}
   .token-card-folio{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
   .token-code{
-    font-size:30px;font-weight:900;letter-spacing:.18em;
+    font-size:36px;font-weight:900;letter-spacing:.35em;
     font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-    color:var(--brand);margin:6px 0 10px;word-break:break-all;line-height:1.2
+    color:var(--brand);margin:6px 0 10px;word-break:break-word;line-height:1.2
   }
   .token-card-meta{font-size:12px;color:var(--muted);margin-bottom:4px}
   .token-card-date{font-size:11px;color:#94a3b8;margin-bottom:12px}
@@ -226,13 +226,13 @@
   }
   .alm-token-input{
     font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-    font-size:22px;font-weight:800;letter-spacing:.2em;text-align:center;
-    text-transform:uppercase;padding:14px 12px!important;
+    font-size:32px;font-weight:900;letter-spacing:.35em;text-align:center;
+    padding:14px 12px!important;
     border:2px solid rgba(29,78,216,.25)!important;border-radius:14px!important;
     background:#f8fbff!important;color:var(--brand)
   }
   .alm-token-input:focus{border-color:var(--brand)!important;box-shadow:0 0 0 4px rgba(29,78,216,.12)}
-  .alm-token-input::placeholder{font-size:14px;letter-spacing:.08em;color:#94a3b8;font-weight:600}
+  .alm-token-input::placeholder{font-size:18px;letter-spacing:.2em;color:#94a3b8;font-weight:600}
   .alm-verify-btn{min-height:52px;padding:0 22px!important;white-space:nowrap}
   .alm-unlocked-badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
   .alm-unlocked-badge{
@@ -251,6 +251,16 @@
   tr.alm-row-locked td{ background:rgba(248,250,252,.85) }
   tr.alm-row-unlocked td:first-child{border-left:4px solid #22c55e}
   .alm-lock-note{font-size:11px;color:#92400e;margin-top:4px;font-weight:700}
+  .progress-pill{
+    display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;
+    font-size:11px;font-weight:800;white-space:nowrap
+  }
+  .progress-pill.pending{background:#eef2ff;color:#3730a3;border:1px solid #c7d2fe}
+  .progress-pill.attending{background:#fff7ed;color:#c2410c;border:1px solid #fdba74}
+  .progress-pill.delivered{background:#ecfdf5;color:#166534;border:1px solid #86efac}
+  .progress-actions{display:flex;flex-direction:column;gap:6px;min-width:148px}
+  .progress-actions .btn-sm{padding:7px 10px;font-size:11px}
+  .token-card-progress{margin:8px 0 10px}
   @media (max-width:900px){
     .alm-verify-form{grid-template-columns:1fr}
     .alm-verify-btn{width:100%}
@@ -559,7 +569,7 @@
           <div class="panel-head">
             <div>
               <h2 class="panel-title">Mis codigos de verificacion</h2>
-              <p class="panel-sub">Cada solicitud genera un codigo unico. Solo tu puedes verlo aqui — entregalo a almacen para surtir.</p>
+              <p class="panel-sub">Cada solicitud genera un codigo unico de 4 digitos. Solo tu puedes verlo aqui — dictalo a almacen para surtir.</p>
             </div>
             <button class="btn btn-outline btn-sm" onclick="renderProdTokens()">Actualizar</button>
           </div>
@@ -620,7 +630,7 @@
               <div class="alm-verify-icon" aria-hidden="true">🔐</div>
               <div>
                 <h3 class="alm-verify-title">Verificar codigo de solicitud</h3>
-                <p class="alm-verify-sub">Produccion entrega un codigo por folio. Validarlo aqui desbloquea el surtido de esa solicitud en la tabla.</p>
+                <p class="alm-verify-sub">Produccion te dicta un codigo de 4 digitos por folio. Validarlo aqui desbloquea el surtido de esa solicitud.</p>
               </div>
             </div>
             <div class="alm-folio-chips" id="alm-folio-chips"></div>
@@ -631,8 +641,8 @@
               </div>
               <div class="field" style="margin:0">
                 <label>Codigo de verificacion</label>
-                <input id="alm-verify-token" class="alm-token-input" type="text" placeholder="ABC-1234"
-                  autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="8"
+                <input id="alm-verify-token" class="alm-token-input" type="tel" inputmode="numeric" placeholder="1234"
+                  autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="4"
                   oninput="formatAlmTokenInput(this)" onkeydown="if(event.key==='Enter')verifyAlmToken()">
               </div>
               <button class="btn btn-primary alm-verify-btn" type="button" onclick="verifyAlmToken()">Verificar y desbloquear</button>
@@ -654,6 +664,7 @@
                   <th>Solicitado</th>
                   <th>Surtido</th>
                   <th>Estatus</th>
+                  <th>Progreso</th>
                   <th>Solicitado por</th>
                   <th>Surtido por</th>
                   <th>Atendida en</th>
@@ -860,6 +871,9 @@ const BACKUP_INTERVAL_MS = 10 * 60 * 1000;
 const REMOTE_DB_REQUIRED = true;
 const BACKUP_DB_NAME = 'dana_material_backup_db_v1';
 const BACKUP_DB_STORE = 'handles';
+const PROGRESS_PENDING = 'pendiente';
+const PROGRESS_ATTENDING = 'siendo_atendida';
+const PROGRESS_DELIVERED = 'entregado';
 const SHAREPOINT_SITE_URL = 'https://dananet.sharepoint.com/sites/DANACHIHUAHUACONECT';
 const SHAREPOINT_LISTS = {
   solicitudes: 'Solicitudes',
@@ -891,6 +905,7 @@ let sharepointDigestExpires = 0;
 let isSaving = false;
 let isSyncing = false;
 let dirtyLineKeys = new Set();
+let dirtyFolioProgress = new Set();
 let lastSyncAt = 0;
 let lastRemoteSnapshot = '';
 let state = loadState();
@@ -958,6 +973,23 @@ function normalizeState(input){
     ...c,
     unit: String(c.unit || 'pza').trim() || 'pza'
   }));
+  normalized.requests = normalized.requests.map(r => ({
+    ...r,
+    supplyProgress: normalizeProgress(r.supplyProgress),
+    supplyProgressBy: String(r.supplyProgressBy || ''),
+    supplyProgressAt: String(r.supplyProgressAt || '')
+  }));
+  const folioGroups = getGroupedRequestsByFolio(normalized.requests);
+  for(const [, rows] of folioGroups){
+    if(folioStatus(rows) !== 'pendiente' && normalizeProgress(rows[0]?.supplyProgress) !== PROGRESS_DELIVERED){
+      const supplied = rows.find(r => r.suppliedBy) || rows[0] || {};
+      for(const r of rows){
+        r.supplyProgress = PROGRESS_DELIVERED;
+        r.supplyProgressBy = supplied.suppliedBy || r.supplyProgressBy || '';
+        r.supplyProgressAt = supplied.suppliedAt || r.supplyProgressAt || '';
+      }
+    }
+  }
   return normalized;
 }
 
@@ -969,9 +1001,21 @@ async function hashSupplyToken(plain){
 }
 
 function generateSupplyToken(){
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  const block = len => Array.from({ length: len }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-  return `${block(3)}-${block(4)}`;
+  return String(Math.floor(Math.random() * 10000)).padStart(4, '0');
+}
+
+function normalizeSupplyToken(value){
+  const digits = String(value || '').replace(/\D/g, '').slice(0, 4);
+  return digits.padStart(4, '0');
+}
+
+function formatTokenDisplay(value){
+  return String(value || '').replace(/\D/g, '').slice(0, 4);
+}
+
+function formatAlmTokenInput(el){
+  if(!el) return;
+  el.value = formatTokenDisplay(el.value);
 }
 
 function getGroupedRequestsByFolio(requests){
@@ -1013,17 +1057,6 @@ function copySupplyToken(token){
   toast(value, 'ok');
 }
 
-function formatTokenDisplay(value){
-  const raw = String(value || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7);
-  if(raw.length <= 3) return raw;
-  return `${raw.slice(0, 3)}-${raw.slice(3)}`;
-}
-
-function formatAlmTokenInput(el){
-  if(!el) return;
-  el.value = formatTokenDisplay(el.value);
-}
-
 function getPendingFolioGroups(){
   const groups = getGroupedRequestsByFolio(state.requests);
   const pending = [];
@@ -1045,11 +1078,15 @@ function isFolioUnlocked(folio, rows){
 
 async function verifySupplyTokenMatch(plain, storedHash){
   if(!plain || !storedHash) return false;
-  const formatted = formatTokenDisplay(plain);
-  if((await hashSupplyToken(formatted)) === storedHash) return true;
-  const compact = formatted.replace('-', '');
-  if(compact.length === 7){
-    return (await hashSupplyToken(`${compact.slice(0, 3)}-${compact.slice(3)}`)) === storedHash;
+  const digits = formatTokenDisplay(plain);
+  if(digits.length === 4){
+    const normalized = normalizeSupplyToken(digits);
+    if((await hashSupplyToken(normalized)) === storedHash) return true;
+  }
+  const legacy = String(plain || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if(legacy.length >= 7){
+    const legacyFormatted = `${legacy.slice(0, 3)}-${legacy.slice(3, 7)}`;
+    if((await hashSupplyToken(legacyFormatted)) === storedHash) return true;
   }
   return false;
 }
@@ -1062,8 +1099,8 @@ async function verifyAlmToken(){
     toast('Selecciona un folio pendiente', 'bad');
     return;
   }
-  if(!token.trim()){
-    toast('Ingresa el codigo de verificacion', 'bad');
+  if(!token.trim() || formatTokenDisplay(token).length < 4){
+    toast('Ingresa el codigo de 4 digitos', 'bad');
     return;
   }
   const rows = state.requests.filter(r => String(r.requestCode) === String(folio));
@@ -1073,6 +1110,11 @@ async function verifyAlmToken(){
   }
   if(folioStatus(rows) !== 'pendiente'){
     toast('Este folio ya fue procesado', 'bad');
+    return;
+  }
+  const workCheck = canWorkFolio(folio);
+  if(!workCheck.ok){
+    toast(workCheck.msg, 'bad');
     return;
   }
   const header = rows[0];
@@ -1165,6 +1207,7 @@ function renderProdTokens(){
     <div class="token-card ${escapeHtml(status)}">
       <div class="token-card-folio">Folio ${escapeHtml(folio)}</div>
       <div class="token-code">${escapeHtml(first.supplyToken)}</div>
+      <div class="token-card-progress">${renderProgressBadge(first)}</div>
       <div class="token-card-meta">${escapeHtml(first.area)} · ${rows.length} linea(s) · <span class="badge ${escapeHtml(status)}">${escapeHtml(status)}</span></div>
       <div class="token-card-date">${escapeHtml(first.createdAt)}</div>
       <button class="btn btn-outline btn-sm" type="button" onclick="copySupplyToken('${escapeJs(first.supplyToken)}')">Copiar codigo</button>
@@ -1493,12 +1536,200 @@ function mergeStates(local, remote, dirtyKeys){
       mergedRequests.set(key, pickNewerRequest(mergedRequests.get(key), r));
     }
   }
-  return normalizeState({
+  const merged = normalizeState({
     requestSeq: Math.max(Number(local.requestSeq) || 0, Number(remote.requestSeq) || 0),
     users: mergeById(local.users, remote.users, u => u.id),
     catalog: mergeById(local.catalog, remote.catalog, c => String(c.id)),
     requests: [...mergedRequests.values()]
   });
+  return applyMergedFolioProgress(local, remote, merged, dirtyFolioProgress);
+}
+
+function applyMergedFolioProgress(local, remote, merged, dirtyFolios){
+  const folios = new Set([
+    ...(local.requests || []).map(r => String(r.requestCode || '')),
+    ...(remote.requests || []).map(r => String(r.requestCode || '')),
+    ...(merged.requests || []).map(r => String(r.requestCode || ''))
+  ].filter(Boolean));
+  const progressByFolio = new Map();
+  for(const folio of folios){
+    const localRow = (local.requests || []).find(r => String(r.requestCode) === folio);
+    const remoteRow = (remote.requests || []).find(r => String(r.requestCode) === folio);
+    if(dirtyFolios.has(folio) && localRow){
+      progressByFolio.set(folio, {
+        supplyProgress: localRow.supplyProgress,
+        supplyProgressBy: localRow.supplyProgressBy,
+        supplyProgressAt: localRow.supplyProgressAt
+      });
+    }else if(remoteRow){
+      progressByFolio.set(folio, {
+        supplyProgress: remoteRow.supplyProgress,
+        supplyProgressBy: remoteRow.supplyProgressBy,
+        supplyProgressAt: remoteRow.supplyProgressAt
+      });
+    }else if(localRow){
+      progressByFolio.set(folio, {
+        supplyProgress: localRow.supplyProgress,
+        supplyProgressBy: localRow.supplyProgressBy,
+        supplyProgressAt: localRow.supplyProgressAt
+      });
+    }
+  }
+  merged.requests = merged.requests.map(r => {
+    const p = progressByFolio.get(String(r.requestCode || ''));
+    if(!p) return r;
+    return { ...r, ...p };
+  });
+  return merged;
+}
+
+function normalizeProgress(value){
+  if(value === PROGRESS_ATTENDING) return PROGRESS_ATTENDING;
+  if(value === PROGRESS_DELIVERED) return PROGRESS_DELIVERED;
+  return PROGRESS_PENDING;
+}
+
+function progressLabel(value){
+  const progress = normalizeProgress(value);
+  if(progress === PROGRESS_ATTENDING) return 'Orden siendo atendida';
+  if(progress === PROGRESS_DELIVERED) return 'Entregado';
+  return 'Pendiente';
+}
+
+function progressPillClass(value){
+  const progress = normalizeProgress(value);
+  if(progress === PROGRESS_ATTENDING) return 'attending';
+  if(progress === PROGRESS_DELIVERED) return 'delivered';
+  return 'pending';
+}
+
+function renderProgressBadge(r){
+  const progress = normalizeProgress(r?.supplyProgress);
+  const by = String(r?.supplyProgressBy || '').trim();
+  let detail = '';
+  if(progress === PROGRESS_ATTENDING && by){
+    detail = `<div class="alm-lock-note" style="color:#c2410c;margin-top:4px">${escapeHtml(by)}</div>`;
+  }else if(progress === PROGRESS_DELIVERED && by){
+    detail = `<div class="alm-lock-note" style="color:#166534;margin-top:4px">${escapeHtml(by)}</div>`;
+  }
+  return `<span class="progress-pill ${progressPillClass(progress)}">${escapeHtml(progressLabel(progress))}</span>${detail}`;
+}
+
+function getAlmActor(){
+  return String(auth.almUser || auth.almLogin || 'Almacen').trim();
+}
+
+function getFolioRows(folio){
+  return state.requests.filter(r => String(r.requestCode) === String(folio));
+}
+
+function isFirstRowOfFolio(r, visibleRows){
+  const folio = String(r.requestCode || '');
+  const first = visibleRows.find(x => String(x.requestCode) === folio);
+  return first && String(first.id) === String(r.id);
+}
+
+function setFolioProgress(folio, progress, by, at){
+  for(const r of getFolioRows(folio)){
+    r.supplyProgress = progress;
+    r.supplyProgressBy = by;
+    r.supplyProgressAt = at;
+    markRequestDirty(r);
+  }
+  dirtyFolioProgress.add(String(folio));
+}
+
+function markFolioProgressIfCompleted(folio){
+  const rows = getFolioRows(folio);
+  if(folioStatus(rows) === 'pendiente') return;
+  const supplied = rows.find(r => r.suppliedBy) || rows[0] || {};
+  setFolioProgress(
+    folio,
+    PROGRESS_DELIVERED,
+    supplied.suppliedBy || getAlmActor(),
+    supplied.suppliedAt || fmtDT()
+  );
+}
+
+function syncFolioProgressWithStatus(folio){
+  const rows = getFolioRows(folio);
+  if(folioStatus(rows) !== 'pendiente'){
+    markFolioProgressIfCompleted(folio);
+  }else if(normalizeProgress(rows[0]?.supplyProgress) === PROGRESS_DELIVERED){
+    setFolioProgress(folio, PROGRESS_PENDING, '', '');
+  }
+}
+
+function canTakeFolio(folio){
+  const rows = getFolioRows(folio);
+  if(!rows.length) return { ok: false, msg: 'Folio no encontrado' };
+  if(folioStatus(rows) !== 'pendiente') return { ok: false, msg: 'Esta orden ya fue procesada' };
+  const progress = normalizeProgress(rows[0]?.supplyProgress);
+  const by = String(rows[0]?.supplyProgressBy || '').trim();
+  const actor = getAlmActor();
+  if(progress === PROGRESS_ATTENDING && by && by !== actor){
+    return { ok: false, msg: `No es posible: ${by} ya esta atendiendo esta orden` };
+  }
+  return { ok: true };
+}
+
+function canWorkFolio(folio){
+  const rows = getFolioRows(folio);
+  if(!rows.length) return { ok: false, msg: 'Folio no encontrado' };
+  if(folioStatus(rows) !== 'pendiente') return { ok: true };
+  const progress = normalizeProgress(rows[0]?.supplyProgress);
+  const by = String(rows[0]?.supplyProgressBy || '').trim();
+  const actor = getAlmActor();
+  if(progress === PROGRESS_PENDING){
+    return { ok: false, msg: 'Primero marca la orden como "Orden siendo atendida"' };
+  }
+  if(progress === PROGRESS_ATTENDING && by && by !== actor){
+    return { ok: false, msg: `No es posible: ${by} ya esta atendiendo esta orden` };
+  }
+  return { ok: true };
+}
+
+function claimFolio(folio){
+  if(!requireAuth('alm')) return;
+  const check = canTakeFolio(folio);
+  if(!check.ok){
+    toast(check.msg, 'bad');
+    renderWarehouse();
+    return;
+  }
+  setFolioProgress(folio, PROGRESS_ATTENDING, getAlmActor(), fmtDT());
+  saveState();
+  toast(`Folio ${folio} — orden siendo atendida`, 'ok');
+}
+
+function releaseFolio(folio){
+  if(!requireAuth('alm')) return;
+  const rows = getFolioRows(folio);
+  const by = String(rows[0]?.supplyProgressBy || '').trim();
+  const actor = getAlmActor();
+  if(normalizeProgress(rows[0]?.supplyProgress) === PROGRESS_ATTENDING && by && by !== actor){
+    toast(`No es posible: solo ${by} puede liberar esta orden`, 'bad');
+    return;
+  }
+  setFolioProgress(folio, PROGRESS_PENDING, '', '');
+  saveState();
+  toast(`Folio ${folio} liberado — pendiente`, 'ok');
+}
+
+function renderFolioProgressActions(r, visibleRows){
+  if(!isFirstRowOfFolio(r, visibleRows)) return '—';
+  if(folioStatus(getFolioRows(r.requestCode)) !== 'pendiente') return '—';
+  const folio = String(r.requestCode || '');
+  const progress = normalizeProgress(r.supplyProgress);
+  const actor = getAlmActor();
+  const by = String(r.supplyProgressBy || '').trim();
+  if(progress === PROGRESS_PENDING){
+    return `<div class="progress-actions"><button class="btn btn-secondary btn-sm" type="button" onclick="claimFolio('${escapeJs(folio)}')">Tomar orden</button></div>`;
+  }
+  if(progress === PROGRESS_ATTENDING && by === actor){
+    return `<div class="progress-actions"><button class="btn btn-outline btn-sm" type="button" onclick="releaseFolio('${escapeJs(folio)}')">Liberar orden</button></div>`;
+  }
+  return `<div class="alm-lock-note" style="margin:0">Atiende ${escapeHtml(by || 'otro almacenista')}</div>`;
 }
 
 function supabaseRemoteKey(table, row){
@@ -1644,7 +1875,10 @@ async function loadSupabaseState(options = {}){
       suppliedAt: d.fecha_atendida || header.fecha_atendida || '',
       supplyToken: header.token_verificacion || '',
       supplyTokenHash: header.token_hash || '',
-      requesterUser: header.solicitado_por_usuario || ''
+      requesterUser: header.solicitado_por_usuario || '',
+      supplyProgress: header.progreso || PROGRESS_PENDING,
+      supplyProgressBy: header.progreso_por || '',
+      supplyProgressAt: header.progreso_en || ''
     };
   });
 
@@ -1733,7 +1967,10 @@ async function saveSupabaseState(nextState, options = {}){
       tiempo_atencion_min: Number(item.TiempoAtencionMin || 0),
       observaciones: String(item.Observaciones || ''),
       token_verificacion: String(item.TokenVerificacion || ''),
-      token_hash: String(item.TokenHash || '')
+      token_hash: String(item.TokenHash || ''),
+      progreso: normalizeProgress(item.Progreso || PROGRESS_PENDING),
+      progreso_por: String(item.ProgresoPor || ''),
+      progreso_en: String(item.ProgresoEn || '')
     }),
     'folio'
   );
@@ -1769,7 +2006,7 @@ async function syncSupabaseState(){
     const remote = await loadSupabaseState();
     if(!remote) return;
     const remoteHash = JSON.stringify(normalizeState(remote));
-    if(remoteHash === lastRemoteSnapshot && !dirtyLineKeys.size) return;
+    if(remoteHash === lastRemoteSnapshot && !dirtyLineKeys.size && !dirtyFolioProgress.size) return;
     const before = JSON.stringify(normalizeState(state));
     const merged = mergeStates(state, remote, dirtyLineKeys);
     const after = JSON.stringify(normalizeState(merged));
@@ -1847,6 +2084,7 @@ function saveState(){
       state = normalizeState(state);
       saveSharePointState(state);
       dirtyLineKeys.clear();
+      dirtyFolioProgress.clear();
       lastSyncAt = Date.now();
       lastRemoteSnapshot = JSON.stringify(normalizeState(state));
     }catch(e){
@@ -1870,6 +2108,7 @@ async function saveSupabaseStateAsync(){
     state = normalizeState(state);
     await saveSupabaseState(state);
     dirtyLineKeys.clear();
+    dirtyFolioProgress.clear();
     lastSyncAt = Date.now();
     lastRemoteSnapshot = JSON.stringify(normalizeState(state));
   }catch(e){
@@ -2294,7 +2533,7 @@ function spRequest(method, path, body = null, extraHeaders = {}){
 function loadSharePointState(options = {}){
   const { includeUsers = true } = options;
   if(!SHAREPOINT_ENABLED) return null;
-  const solicitudes = spGetItems(SHAREPOINT_LISTS.solicitudes, 'Id,Title,Folio,SolicitadoPor,SolicitadoPorUsuario,Area,Estatus,FechaCreacion,FechaAtendida,SurtidoPor,TiempoAtencionMin,Observaciones,TokenVerificacion,TokenHash');
+  const solicitudes = spGetItems(SHAREPOINT_LISTS.solicitudes, 'Id,Title,Folio,SolicitadoPor,SolicitadoPorUsuario,Area,Estatus,FechaCreacion,FechaAtendida,SurtidoPor,TiempoAtencionMin,Observaciones,TokenVerificacion,TokenHash,Progreso,ProgresoPor,ProgresoEn');
   const detalles = spGetItems(SHAREPOINT_LISTS.detalles, 'Id,Title,FolioSolicitud,NoParte,MaterialCodigo,Descripcion,UnidadMedida,CantidadSolicitada,CantidadSurtida,EstatusLinea,SurtidoPor,FechaAtendida');
   const catalogo = spGetItems(SHAREPOINT_LISTS.catalogo, 'Id,Title,Area,NoParte,MaterialCodigo,Descripcion,UnidadMedida,Activo');
   const usuarios = includeUsers
@@ -2325,7 +2564,10 @@ function loadSharePointState(options = {}){
       suppliedAt: d.FechaAtendida || header.FechaAtendida || '',
       supplyToken: header.TokenVerificacion || '',
       supplyTokenHash: header.TokenHash || '',
-      requesterUser: header.SolicitadoPorUsuario || ''
+      requesterUser: header.SolicitadoPorUsuario || '',
+      supplyProgress: header.Progreso || PROGRESS_PENDING,
+      supplyProgressBy: header.ProgresoPor || '',
+      supplyProgressAt: header.ProgresoEn || ''
     };
   });
 
@@ -2414,9 +2656,12 @@ function saveSharePointState(nextState, options = {}){
       TiempoAtencionMin: Number(item.TiempoAtencionMin || 0),
       Observaciones: String(item.Observaciones || ''),
       TokenVerificacion: String(item.TokenVerificacion || ''),
-      TokenHash: String(item.TokenHash || '')
+      TokenHash: String(item.TokenHash || ''),
+      Progreso: normalizeProgress(item.Progreso || PROGRESS_PENDING),
+      ProgresoPor: String(item.ProgresoPor || ''),
+      ProgresoEn: String(item.ProgresoEn || '')
     }),
-    ['Id','Title','Folio','SolicitadoPor','SolicitadoPorUsuario','Area','Estatus','FechaCreacion','FechaAtendida','SurtidoPor','TiempoAtencionMin','Observaciones','TokenVerificacion','TokenHash']
+    ['Id','Title','Folio','SolicitadoPor','SolicitadoPorUsuario','Area','Estatus','FechaCreacion','FechaAtendida','SurtidoPor','TiempoAtencionMin','Observaciones','TokenVerificacion','TokenHash','Progreso','ProgresoPor','ProgresoEn']
   );
   syncSharePointList(
     SHAREPOINT_LISTS.detalles,
@@ -2448,7 +2693,7 @@ function syncSharePointState(){
     const remote = loadSharePointState();
     if(!remote) return;
     const remoteHash = JSON.stringify(normalizeState(remote));
-    if(remoteHash === lastRemoteSnapshot && !dirtyLineKeys.size) return;
+    if(remoteHash === lastRemoteSnapshot && !dirtyLineKeys.size && !dirtyFolioProgress.size) return;
     const before = JSON.stringify(normalizeState(state));
     const merged = mergeStates(state, remote, dirtyLineKeys);
     const after = JSON.stringify(normalizeState(merged));
@@ -2536,7 +2781,10 @@ function groupRequestsByCode(requests){
       TiempoAtencionMin: calcAttentionMinutesValue(first.createdAt, supplied.suppliedAt),
       Observaciones: '',
       TokenVerificacion: first.supplyToken || '',
-      TokenHash: first.supplyTokenHash || ''
+      TokenHash: first.supplyTokenHash || '',
+      Progreso: normalizeProgress(first.supplyProgress),
+      ProgresoPor: first.supplyProgressBy || '',
+      ProgresoEn: first.supplyProgressAt || ''
     };
   });
 }
@@ -2702,7 +2950,9 @@ async function loginModule(mod){
     renderProdTokens();
     clearLoginFields('prod');
   }else{
-    auth.alm = true; auth.almUser = found.name || found.user;
+    auth.alm = true;
+    auth.almUser = found.name || found.user;
+    auth.almLogin = found.user || user;
     toast('Almacen desbloqueado', 'ok');
     setActiveTab('alm');
     clearLoginFields('alm');
@@ -2716,7 +2966,7 @@ function logoutModule(mod, options = {}){
   const { silent = false, reason = '' } = options;
   const hadSession = !!auth[mod];
   if(mod === 'prod'){ auth.prod = false; auth.prodUser = ''; auth.prodLogin = ''; }
-  if(mod === 'alm'){ auth.alm = false; auth.almUser = ''; unlockedFolios.clear(); }
+  if(mod === 'alm'){ auth.alm = false; auth.almUser = ''; auth.almLogin = ''; unlockedFolios.clear(); }
   if(mod === 'adm'){ auth.adm = false; auth.admUser = ''; }
   saveAuth();
   clearLoginFields(mod);
@@ -3000,7 +3250,10 @@ async function submitProd(){
       suppliedAt: '',
       supplyToken,
       supplyTokenHash,
-      requesterUser
+      requesterUser,
+      supplyProgress: PROGRESS_PENDING,
+      supplyProgressBy: '',
+      supplyProgressAt: ''
     });
   }
   if(!created.length){
@@ -3038,6 +3291,7 @@ function renderProdHistory(){
       <div class="list-item-sub" style="margin-top:8px">
         Solicitado por: <strong>${escapeHtml(r.requester)}</strong> · Cantidad: <strong>${formatQty(r.qtyRequested, unit)}</strong> · Surtido: <strong>${formatQty(r.qtySupplied || 0, unit)}</strong>
       </div>
+      <div class="token-card-progress">${renderProgressBadge(r)}</div>
     </div>
   `;
   }).join('');
@@ -3045,7 +3299,7 @@ function renderProdHistory(){
 
 function renderWarehouse(){
   if(!auth.alm){
-    document.getElementById('alm-table').innerHTML = `<tr><td colspan="14"><div class="empty" style="margin:12px">Inicia sesion de Almacen para ver y modificar solicitudes.</div></td></tr>`;
+    document.getElementById('alm-table').innerHTML = `<tr><td colspan="15"><div class="empty" style="margin:12px">Inicia sesion de Almacen para ver y modificar solicitudes.</div></td></tr>`;
     const panel = document.getElementById('alm-verify-panel');
     if(panel) panel.classList.add('hidden');
     return;
@@ -3068,22 +3322,36 @@ function renderWarehouse(){
   document.getElementById('sum-surtido').textContent = surtido;
   document.getElementById('sum-corto').textContent = corto;
   if(!rows.length){
-    tbody.innerHTML = `<tr><td colspan="14"><div class="empty" style="margin:12px">Sin resultados.</div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="15"><div class="empty" style="margin:12px">Sin resultados.</div></td></tr>`;
     return;
   }
   tbody.innerHTML = rows.map(r => {
     const unit = requestUnit(r);
     const folio = String(r.requestCode || '');
-    const folioRows = state.requests.filter(x => String(x.requestCode) === folio);
+    const folioRows = getFolioRows(folio);
+    const folioPending = folioStatus(folioRows) === 'pendiente';
     const unlocked = isFolioUnlocked(folio, folioRows);
-    const locked = r.status === 'pendiente' && folioRequiresToken(folioRows) && !unlocked;
-    const rowClass = locked ? 'alm-row-locked' : (r.status === 'pendiente' && unlocked ? 'alm-row-unlocked' : '');
+    const tokenLocked = r.status === 'pendiente' && folioRequiresToken(folioRows) && !unlocked;
+    const workCheck = folioPending ? canWorkFolio(folio) : { ok: true };
+    const progressLocked = folioPending && !workCheck.ok;
+    const locked = tokenLocked || progressLocked;
+    const rowClass = locked ? 'alm-row-locked' : (r.status === 'pendiente' && unlocked && !progressLocked ? 'alm-row-unlocked' : '');
     const disabled = locked ? 'disabled' : '';
+    let lockNote = '';
+    if(progressLocked && normalizeProgress(r.supplyProgress) === PROGRESS_ATTENDING){
+      lockNote = `<div class="alm-lock-note">Atiende ${escapeHtml(r.supplyProgressBy || 'otro almacenista')}</div>`;
+    }else if(progressLocked){
+      lockNote = '<div class="alm-lock-note">Primero toma la orden</div>';
+    }else if(tokenLocked){
+      lockNote = '<div class="alm-lock-note">🔒 Verifica codigo arriba</div>';
+    }else if(r.status === 'pendiente' && unlocked){
+      lockNote = '<div class="alm-lock-note" style="color:#166534">✓ Desbloqueado</div>';
+    }
     return `
     <tr class="${rowClass}">
       <td>
         <strong>${escapeHtml(r.requestCode || '0')}</strong>
-        ${locked ? '<div class="alm-lock-note">🔒 Verifica codigo arriba</div>' : (r.status === 'pendiente' && unlocked ? '<div class="alm-lock-note" style="color:#166534">✓ Desbloqueado</div>' : '')}
+        ${lockNote}
       </td>
       <td>${escapeHtml(r.createdAt)}</td>
       <td>${escapeHtml(r.area)}</td>
@@ -3105,10 +3373,14 @@ function renderWarehouse(){
         </select>
       </td>
       <td>
+        ${renderProgressBadge(r)}
+        ${renderFolioProgressActions(r, rows)}
+      </td>
+      <td>
         <span>${escapeHtml(r.requester)}</span>
       </td>
       <td>
-        <span class="pill ${r.suppliedBy ? 'ok' : 'warn'}">${escapeHtml(r.suppliedBy || auth.almUser || 'Pendiente')}</span>
+        <span class="pill ${r.suppliedBy ? 'ok' : 'warn'}">${escapeHtml(r.suppliedBy || 'Pendiente')}</span>
       </td>
       <td>${escapeHtml(r.suppliedAt || '—')}</td>
       <td>${escapeHtml(calcAttentionMinutes(r.createdAt, r.suppliedAt))}</td>
@@ -3130,7 +3402,7 @@ function exportWarehouseExcel(){
     toast('No hay datos para exportar', 'bad');
     return;
   }
-  const headers = ['Solicitud','Fecha','Area','No. Parte','Codigo','Descripcion','Unidad','Solicitado','Surtido','Estatus','Solicitado por','Surtido por','Atendida en','Tiempo (min)'];
+  const headers = ['Solicitud','Fecha','Area','No. Parte','Codigo','Descripcion','Unidad','Solicitado','Surtido','Estatus','Progreso','Solicitado por','Surtido por','Atendida en','Tiempo (min)'];
   const csv = [
     headers.join(','),
     ...rows.map(r => {
@@ -3146,8 +3418,9 @@ function exportWarehouseExcel(){
       r.qtyRequested,
       csvCell(formatQty(r.qtySupplied || 0, unit)),
       csvCell(r.status),
+      csvCell(progressLabel(r.supplyProgress)),
       csvCell(r.requester),
-      csvCell(r.suppliedBy || auth.almUser || ''),
+      csvCell(r.suppliedBy || ''),
       csvDateCell(r.suppliedAt),
       csvCell(calcAttentionMinutes(r.createdAt, r.suppliedAt))
     ].join(',');
@@ -3229,8 +3502,20 @@ function updateRequest(id, key, value){
   const r = state.requests.find(x => String(x.id) === String(id));
   if(!r) return;
   const folio = String(r.requestCode || '');
-  const folioRows = state.requests.filter(x => String(x.requestCode) === folio);
+  const folioRows = getFolioRows(folio);
+  const folioPending = folioStatus(folioRows) === 'pendiente';
   const needsToken = folioRequiresToken(folioRows) && !isFolioUnlocked(folio, folioRows);
+
+  if(folioPending){
+    const workCheck = canWorkFolio(folio);
+    const changingSupply = key === 'qtySupplied' && Math.max(0, parseInt(value || '0', 10) || 0) > 0;
+    const changingStatus = key === 'status' && value !== 'pendiente';
+    if((changingSupply || changingStatus) && !workCheck.ok){
+      toast(workCheck.msg, 'bad');
+      renderWarehouse();
+      return;
+    }
+  }
 
   if(needsToken){
     if(key === 'status' && value !== 'pendiente'){
@@ -3272,6 +3557,7 @@ function updateRequest(id, key, value){
   }
   if(folioStatus(folioRows) !== 'pendiente'){
     unlockedFolios.delete(folio);
+    syncFolioProgressWithStatus(folio);
   }
   saveState();
   renderWarehouse();
