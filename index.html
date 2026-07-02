@@ -126,11 +126,41 @@
     font-family:var(--font-display);font-size:36px;font-weight:700;
     color:var(--black);line-height:1;
   }
-  .mini-card .num span{color:var(--brand)}
   .mini-card .lbl{
     font-size:10px;color:var(--muted);text-transform:uppercase;
     letter-spacing:.14em;font-weight:600;margin-top:8px;
   }
+  .mini-card-carousel{border-left-color:var(--ok)}
+  .mini-carousel{
+    margin-top:14px;padding-top:12px;border-top:1px solid var(--line);
+    min-height:58px;
+  }
+  .mini-carousel-stage{
+    display:flex;justify-content:center;align-items:center;min-height:48px;
+    opacity:1;transition:opacity .5s ease;
+  }
+  .mini-carousel-stage.is-fading{opacity:0}
+  .mini-carousel-stage .mini-folio{
+    min-width:72px;padding:8px 14px;
+  }
+  .mini-folio{
+    display:inline-block;
+    padding:7px 10px;border-radius:var(--radius);
+    background:#fff;border:1px solid var(--line);text-align:center;
+  }
+  .mini-folio-num{
+    font-family:var(--font-display);font-size:18px;font-weight:700;
+    color:var(--black);line-height:1.1;
+  }
+  .mini-folio-tag{
+    font-size:9px;font-weight:600;color:var(--muted);text-transform:uppercase;
+    letter-spacing:.06em;margin-top:3px;
+  }
+  .mini-folio.surtido{border-color:rgba(10,122,82,.3);background:var(--ok-soft)}
+  .mini-folio.surtido .mini-folio-num{color:var(--ok)}
+  .mini-folio.corto{border-color:rgba(154,103,0,.3);background:var(--warn-soft)}
+  .mini-folio.corto .mini-folio-num{color:var(--warn)}
+  .mini-carousel-empty{font-size:11px;color:var(--muted);line-height:1.4;text-align:center}
   .hero-title{
     font-family:var(--font-display);font-size:clamp(28px,3.2vw,40px);
     font-weight:600;margin:16px 0 12px;line-height:1.15;letter-spacing:-.01em;
@@ -473,9 +503,14 @@
             <div class="num" id="count-surtidas">0</div>
             <div class="lbl">Solicitudes surtidas</div>
           </div>
-          <div class="mini-card">
+          <div class="mini-card mini-card-carousel">
             <div class="num" id="count-codes">0</div>
-            <div class="lbl">Códigos atendidos</div>
+            <div class="lbl">Codigos atendidos</div>
+            <div class="mini-carousel" id="hero-attended-carousel">
+              <div class="mini-carousel-stage" id="hero-attended-stage">
+                <div class="mini-carousel-empty">Sin folios atendidos</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1196,11 +1231,12 @@ function renderProdTokens(){
     const first = rows[0];
     if(!isRequestOwnedByCurrentProdUser(first)) continue;
     if(!first.supplyToken) continue;
+    if(folioStatus(rows) !== 'pendiente') continue;
     cards.push({ folio, rows, first, status: folioStatus(rows) });
   }
   cards.sort((a, b) => Number(b.folio) - Number(a.folio));
   if(!cards.length){
-    host.innerHTML = '<div class="empty">Cuando envies una solicitud, tu codigo aparecera aqui en una tarjeta.</div>';
+    host.innerHTML = '<div class="empty">No tienes codigos activos. Cuando envies una solicitud pendiente, aparecera aqui.</div>';
     return;
   }
   host.innerHTML = cards.map(({ folio, rows, first, status }) => `
@@ -1213,6 +1249,138 @@ function renderProdTokens(){
       <button class="btn btn-outline btn-sm" type="button" onclick="copySupplyToken('${escapeJs(first.supplyToken)}')">Copiar codigo</button>
     </div>
   `).join('');
+}
+
+function getFolioAttendedAt(rows){
+  const dates = (rows || []).map(r => String(r.suppliedAt || '').trim()).filter(Boolean);
+  if(!dates.length) return '';
+  return dates.sort((a, b) => parseAppDateTime(b) - parseAppDateTime(a))[0];
+}
+
+function parseAppDateTime(value){
+  const [datePart, timePart] = String(value || '').split(' ');
+  if(!datePart || !timePart) return 0;
+  const [dd, mm, yyyy] = datePart.split('/').map(Number);
+  const [hh, mi, ss] = timePart.split(':').map(Number);
+  const d = new Date(yyyy, (mm || 1) - 1, dd || 1, hh || 0, mi || 0, ss || 0);
+  return Number.isNaN(d.getTime()) ? 0 : d.getTime();
+}
+
+function compareFolioRecency(a, b){
+  const atA = parseAppDateTime(getFolioAttendedAt(a.rows)) || parseAppDateTime(a.first?.createdAt) || Number(a.folio) || 0;
+  const atB = parseAppDateTime(getFolioAttendedAt(b.rows)) || parseAppDateTime(b.first?.createdAt) || Number(b.folio) || 0;
+  if(atA !== atB) return atA - atB;
+  return (Number(a.folio) || 0) - (Number(b.folio) || 0);
+}
+
+function getAttendedFolios(limit = 24){
+  const groups = getGroupedRequestsByFolio(state.requests);
+  const attended = [];
+  for(const [folio, rows] of groups){
+    const status = folioStatus(rows);
+    if(status === 'pendiente') continue;
+    attended.push({ folio, rows, first: rows[0], status });
+  }
+  attended.sort((a, b) => compareFolioRecency(b, a));
+  return attended.slice(0, limit);
+}
+
+function folioStatusLabel(status){
+  if(status === 'surtido') return 'Surtido';
+  if(status === 'corto') return 'Corto';
+  return status;
+}
+
+const HERO_CAROUSEL_INTERVAL_MS = 3200;
+const HERO_CAROUSEL_FADE_MS = 500;
+let heroCarouselItems = [];
+let heroCarouselIndex = 0;
+let heroCarouselTimer = null;
+let heroCarouselFadeTimer = null;
+
+function buildHeroFolioSlideHtml({ folio, status, rows, first }){
+  const attendedAt = getFolioAttendedAt(rows) || first?.suppliedAt || '';
+  const area = String(first?.area || '').trim();
+  return `
+    <span class="mini-folio ${escapeHtml(status)}" title="Folio ${escapeHtml(folio)} · ${escapeHtml(folioStatusLabel(status))}${area ? ' · ' + escapeHtml(area) : ''}${attendedAt ? ' · ' + escapeHtml(attendedAt) : ''}">
+      <div class="mini-folio-num">${escapeHtml(folio)}</div>
+      <div class="mini-folio-tag">${escapeHtml(folioStatusLabel(status))}</div>
+    </span>
+  `;
+}
+
+function stopHeroCarouselAutoplay(){
+  if(heroCarouselTimer){
+    clearInterval(heroCarouselTimer);
+    heroCarouselTimer = null;
+  }
+  if(heroCarouselFadeTimer){
+    clearTimeout(heroCarouselFadeTimer);
+    heroCarouselFadeTimer = null;
+  }
+}
+
+function showHeroCarouselSlide(index, animate = true){
+  const stage = document.getElementById('hero-attended-stage');
+  if(!stage || !heroCarouselItems.length) return;
+  const safeIndex = ((index % heroCarouselItems.length) + heroCarouselItems.length) % heroCarouselItems.length;
+  heroCarouselIndex = safeIndex;
+  const html = buildHeroFolioSlideHtml(heroCarouselItems[safeIndex]);
+  if(!animate){
+    stage.classList.remove('is-fading');
+    stage.innerHTML = html;
+    return;
+  }
+  stage.classList.add('is-fading');
+  heroCarouselFadeTimer = setTimeout(() => {
+    stage.innerHTML = html;
+    stage.classList.remove('is-fading');
+    heroCarouselFadeTimer = null;
+  }, HERO_CAROUSEL_FADE_MS);
+}
+
+function advanceHeroCarousel(){
+  if(heroCarouselItems.length <= 1) return;
+  showHeroCarouselSlide(heroCarouselIndex + 1, true);
+}
+
+function startHeroCarouselAutoplay(){
+  stopHeroCarouselAutoplay();
+  if(heroCarouselItems.length <= 1) return;
+  heroCarouselTimer = setInterval(advanceHeroCarousel, HERO_CAROUSEL_INTERVAL_MS);
+}
+
+function renderHeroAttendedCarousel(){
+  const stage = document.getElementById('hero-attended-stage');
+  const countEl = document.getElementById('count-codes');
+  if(!stage) return;
+  stopHeroCarouselAutoplay();
+  const groups = getGroupedRequestsByFolio(state.requests);
+  let totalAttended = 0;
+  for(const [, rows] of groups){
+    if(folioStatus(rows) !== 'pendiente') totalAttended++;
+  }
+  if(countEl) countEl.textContent = totalAttended;
+  heroCarouselItems = getAttendedFolios();
+  if(!heroCarouselItems.length){
+    stage.classList.remove('is-fading');
+    stage.innerHTML = '<div class="mini-carousel-empty">Sin folios atendidos</div>';
+    return;
+  }
+  if(heroCarouselIndex >= heroCarouselItems.length) heroCarouselIndex = 0;
+  showHeroCarouselSlide(heroCarouselIndex, false);
+  startHeroCarouselAutoplay();
+}
+
+function initHeroCarouselAutoplay(){
+  const carousel = document.getElementById('hero-attended-carousel');
+  if(!carousel) return;
+  carousel.addEventListener('mouseenter', stopHeroCarouselAutoplay);
+  carousel.addEventListener('mouseleave', startHeroCarouselAutoplay);
+  document.addEventListener('visibilitychange', () => {
+    if(document.hidden) stopHeroCarouselAutoplay();
+    else startHeroCarouselAutoplay();
+  });
 }
 
 async function hashPassword(plain){
@@ -3048,10 +3216,9 @@ function updateTopCounts(){
   const grouped = [...groups.entries()].map(([code, rows]) => ({ code, status: statusOf(rows) }));
   const pending = grouped.filter(x => x.status === 'pendiente').length;
   const surtidas = grouped.filter(x => x.status === 'surtido').length;
-  const atendidos = grouped.filter(x => x.status !== 'pendiente').length;
   document.getElementById('count-pending').textContent = pending;
   document.getElementById('count-surtidas').textContent = surtidas;
-  document.getElementById('count-codes').textContent = atendidos;
+  renderHeroAttendedCarousel();
 }
 
 function updateClock(){
@@ -4054,6 +4221,7 @@ async function initApp(){
   syncModeLabel();
 }
 
+initHeroCarouselAutoplay();
 initApp();
 
 </script>
