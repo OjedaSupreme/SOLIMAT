@@ -216,6 +216,12 @@
   .prod-layout #prod-history .list-item-sub{font-size:11px;line-height:1.35}
   .prod-layout #prod-history .pill{font-size:10px;padding:5px 8px}
   .prod-tokens-panel{margin-top:18px}
+  .prod-tokens-block{margin-top:20px}
+  .prod-tokens-block:first-child{margin-top:0}
+  .prod-tokens-block-title{
+    margin:0 0 12px;font-size:12px;font-weight:700;color:var(--muted);
+    letter-spacing:.08em;text-transform:uppercase;
+  }
   .token-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
   .token-card{
     background:linear-gradient(145deg,#f8fbff 0%,#eef4fc 100%);
@@ -592,7 +598,7 @@
             <div class="panel-head" style="margin-bottom:12px">
               <div>
                 <h2 class="panel-title">Historial</h2>
-                <p class="panel-sub">Ultimas solicitudes registradas.</p>
+                <p class="panel-sub">Tus ultimas solicitudes enviadas.</p>
               </div>
               <button class="btn btn-outline btn-sm" onclick="renderProdHistory()">Actualizar</button>
             </div>
@@ -604,7 +610,7 @@
           <div class="panel-head">
             <div>
               <h2 class="panel-title">Mis codigos de verificacion</h2>
-              <p class="panel-sub">Cada solicitud genera un codigo unico de 4 digitos. Solo tu puedes verlo aqui — dictalo a almacen para surtir.</p>
+              <p class="panel-sub">Codigos activos para almacen y codigos atendidos de tus solicitudes completadas.</p>
             </div>
             <button class="btn btn-outline btn-sm" onclick="renderProdTokens()">Actualizar</button>
           </div>
@@ -1215,6 +1221,55 @@ function selectAlmVerifyFolio(folio){
   document.getElementById('alm-verify-token')?.focus();
 }
 
+function getProdTokenCards(kind){
+  const groups = getGroupedRequestsByFolio(state.requests);
+  const cards = [];
+  for(const [folio, rows] of groups){
+    const first = rows[0];
+    if(!isRequestOwnedByCurrentProdUser(first)) continue;
+    if(!first.supplyToken) continue;
+    const status = folioStatus(rows);
+    if(kind === 'pending' && status !== 'pendiente') continue;
+    if(kind === 'attended' && status === 'pendiente') continue;
+    cards.push({ folio, rows, first, status });
+  }
+  if(kind === 'attended'){
+    cards.sort((a, b) => compareFolioRecency(b, a));
+  }else{
+    cards.sort((a, b) => Number(b.folio) - Number(a.folio));
+  }
+  return cards;
+}
+
+function renderTokenCard({ folio, rows, first, status }){
+  return `
+    <div class="token-card ${escapeHtml(status)}">
+      <div class="token-card-folio">Folio ${escapeHtml(folio)}</div>
+      <div class="token-code">${escapeHtml(first.supplyToken)}</div>
+      <div class="token-card-progress">${renderProgressBadge(first)}</div>
+      <div class="token-card-meta">${escapeHtml(first.area)} · ${rows.length} linea(s) · <span class="badge ${escapeHtml(status)}">${escapeHtml(status)}</span></div>
+      <div class="token-card-date">${escapeHtml(status === 'pendiente' ? first.createdAt : (getFolioAttendedAt(rows) || first.createdAt))}</div>
+      <button class="btn btn-outline btn-sm" type="button" onclick="copySupplyToken('${escapeJs(first.supplyToken)}')">Copiar codigo</button>
+    </div>
+  `;
+}
+
+function getProdHistoryFolios(){
+  const groups = getGroupedRequestsByFolio(state.requests);
+  const completed = [];
+  const pending = [];
+  for(const [folio, rows] of groups){
+    const first = rows[0];
+    if(!isRequestOwnedByCurrentProdUser(first)) continue;
+    const entry = { folio, rows, first, status: folioStatus(rows) };
+    if(entry.status === 'pendiente') pending.push(entry);
+    else completed.push(entry);
+  }
+  completed.sort((a, b) => compareFolioRecency(b, a));
+  pending.sort((a, b) => Number(b.folio) - Number(a.folio));
+  return { completed, pending };
+}
+
 function renderProdTokens(){
   const panel = document.getElementById('prod-tokens-panel');
   const host = document.getElementById('prod-tokens');
@@ -1225,30 +1280,24 @@ function renderProdTokens(){
     return;
   }
   panel.classList.remove('hidden');
-  const groups = getGroupedRequestsByFolio(state.requests);
-  const cards = [];
-  for(const [folio, rows] of groups){
-    const first = rows[0];
-    if(!isRequestOwnedByCurrentProdUser(first)) continue;
-    if(!first.supplyToken) continue;
-    if(folioStatus(rows) !== 'pendiente') continue;
-    cards.push({ folio, rows, first, status: folioStatus(rows) });
-  }
-  cards.sort((a, b) => Number(b.folio) - Number(a.folio));
-  if(!cards.length){
-    host.innerHTML = '<div class="empty">No tienes codigos activos. Cuando envies una solicitud pendiente, aparecera aqui.</div>';
-    return;
-  }
-  host.innerHTML = cards.map(({ folio, rows, first, status }) => `
-    <div class="token-card ${escapeHtml(status)}">
-      <div class="token-card-folio">Folio ${escapeHtml(folio)}</div>
-      <div class="token-code">${escapeHtml(first.supplyToken)}</div>
-      <div class="token-card-progress">${renderProgressBadge(first)}</div>
-      <div class="token-card-meta">${escapeHtml(first.area)} · ${rows.length} linea(s) · <span class="badge ${escapeHtml(status)}">${escapeHtml(status)}</span></div>
-      <div class="token-card-date">${escapeHtml(first.createdAt)}</div>
-      <button class="btn btn-outline btn-sm" type="button" onclick="copySupplyToken('${escapeJs(first.supplyToken)}')">Copiar codigo</button>
+  const pending = getProdTokenCards('pending');
+  const attended = getProdTokenCards('attended');
+  const pendingHtml = pending.length
+    ? `<div class="token-grid">${pending.map(renderTokenCard).join('')}</div>`
+    : '<div class="empty">No tienes codigos activos pendientes de surtir.</div>';
+  const attendedHtml = attended.length
+    ? `<div class="token-grid">${attended.map(renderTokenCard).join('')}</div>`
+    : '<div class="empty">Cuando almacen complete tus solicitudes, apareceran aqui.</div>';
+  host.innerHTML = `
+    <div class="prod-tokens-block">
+      <h3 class="prod-tokens-block-title">Codigos activos</h3>
+      ${pendingHtml}
     </div>
-  `).join('');
+    <div class="prod-tokens-block">
+      <h3 class="prod-tokens-block-title">Codigos atendidos</h3>
+      ${attendedHtml}
+    </div>
+  `;
 }
 
 function getFolioAttendedAt(rows){
@@ -3439,26 +3488,38 @@ async function submitProd(){
 
 function renderProdHistory(){
   const host = document.getElementById('prod-history');
-  const items = state.requests.slice(0, 20);
-  if(!items.length){
-    host.innerHTML = `<div class="empty">Todavia no hay solicitudes.</div>`;
+  if(!host) return;
+  if(!auth.prod){
+    host.innerHTML = `<div class="empty">Inicia sesion para ver tu historial de solicitudes.</div>`;
     return;
   }
-  host.innerHTML = items.map(r => {
-    const unit = requestUnit(r);
+  const { completed, pending } = getProdHistoryFolios();
+  const folios = [...completed, ...pending];
+  if(!folios.length){
+    host.innerHTML = `<div class="empty">Aun no has enviado solicitudes.</div>`;
+    return;
+  }
+  host.innerHTML = folios.map(({ folio, rows, first, status }) => {
+    const attendedAt = getFolioAttendedAt(rows);
+    const dateLabel = status === 'pendiente' ? first.createdAt : (attendedAt || first.createdAt);
+    const linesText = rows.map(r => {
+      const unit = requestUnit(r);
+      return `${r.part} · ${formatQty(r.qtyRequested, unit)}`;
+    }).join(' · ');
+    const codeLine = first.supplyToken
+      ? `<div class="list-item-sub" style="margin-top:6px">Codigo: <strong>${escapeHtml(first.supplyToken)}</strong></div>`
+      : '';
     return `
     <div class="list-item">
       <div class="list-item-top">
         <div>
-          <div class="list-item-title">Solicitud ${escapeHtml(r.requestCode || '0')} <span class="badge ${r.status}">${r.status}</span></div>
-          <div class="list-item-sub">${escapeHtml(r.area)} · ${escapeHtml(r.part)} · ${escapeHtml(r.desc)} · ${escapeHtml(unit)}</div>
+          <div class="list-item-title">Folio ${escapeHtml(folio)} <span class="badge ${escapeHtml(status)}">${escapeHtml(status)}</span></div>
+          <div class="list-item-sub">${escapeHtml(first.area)} · ${rows.length} linea(s) · ${escapeHtml(linesText)}</div>
         </div>
-        <div class="pill">${escapeHtml(r.createdAt)}</div>
+        <div class="pill">${escapeHtml(dateLabel || '—')}</div>
       </div>
-      <div class="list-item-sub" style="margin-top:8px">
-        Solicitado por: <strong>${escapeHtml(r.requester)}</strong> · Cantidad: <strong>${formatQty(r.qtyRequested, unit)}</strong> · Surtido: <strong>${formatQty(r.qtySupplied || 0, unit)}</strong>
-      </div>
-      <div class="token-card-progress">${renderProgressBadge(r)}</div>
+      <div class="token-card-progress">${renderProgressBadge(first)}</div>
+      ${codeLine}
     </div>
   `;
   }).join('');
