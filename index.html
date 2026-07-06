@@ -57,9 +57,27 @@
     box-shadow:0 12px 40px rgba(0,0,0,.18);
   }
   .topbar-inner{
-    max-width:1400px;margin:0 auto;padding:16px 28px;
-    display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+    max-width:1400px;margin:0 auto;padding:12px 28px;
+    display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:20px;
   }
+  .topbar-nav{
+    display:flex;justify-content:center;gap:4px;flex-wrap:wrap;
+    padding:0;background:transparent;border:none;box-shadow:none;margin:0;
+  }
+  .tab-btn{
+    border:none;border-radius:var(--radius);
+    padding:10px 18px;background:transparent;color:var(--muted);
+    font-weight:600;font-size:12px;letter-spacing:.08em;text-transform:uppercase;
+    cursor:pointer;transition:all .22s ease;
+  }
+  .topbar-nav .tab-btn{color:rgba(255,255,255,.62)}
+  .topbar-nav .tab-btn:hover{color:#fff;background:rgba(255,255,255,.08)}
+  .topbar-nav .tab-btn.active{
+    background:var(--brand);color:#fff;
+    box-shadow:0 4px 14px rgba(0,153,216,.35);
+  }
+  .topbar-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+  #topbar-session{max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .brand{display:flex;align-items:center;gap:16px}
   .brand-mark{
     width:44px;height:44px;border-radius:var(--radius);
@@ -91,28 +109,17 @@
     0%,100%{box-shadow:0 0 0 0 var(--brand-glow)}
     50%{box-shadow:0 0 0 8px rgba(0,153,216,0)}
   }
-  .container{max-width:1400px;margin:0 auto;padding:28px}
-  .hero{
-    display:grid;grid-template-columns:1.4fr .6fr;gap:20px;margin-bottom:24px;
+  .container{max-width:1400px;margin:0 auto;padding:24px 28px 28px}
+  .kpi-strip{
+    display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:22px;
   }
-  .hero-card,.panel,.mini-card,.list-card,.form-card,.table-card{
+  .panel,.mini-card,.list-card,.form-card,.table-card{
     background:var(--card);
     border:1px solid var(--line);
     border-radius:var(--radius-lg);
     box-shadow:var(--shadow-sm);
     position:relative;
     overflow:hidden;
-  }
-  .hero-card{
-    padding:32px 36px;
-    background:linear-gradient(165deg, #fff 0%, #fafbfd 100%);
-  }
-  .hero-card::before{
-    content:'';position:absolute;top:0;left:0;right:0;height:3px;
-    background:linear-gradient(90deg, var(--black) 0%, var(--brand) 100%);
-  }
-  .hero-grid{
-    display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:28px;
   }
   .mini-card{
     padding:20px 22px;
@@ -130,7 +137,9 @@
     font-size:10px;color:var(--muted);text-transform:uppercase;
     letter-spacing:.14em;font-weight:600;margin-top:8px;
   }
-  .mini-card-carousel{border-left-color:var(--ok)}
+  .mini-card--pending{border-left-color:var(--warn)}
+  .mini-card--surtido{border-left-color:var(--ok)}
+  .mini-card-carousel{border-left-color:var(--brand)}
   .mini-carousel{
     margin-top:14px;padding-top:12px;border-top:1px solid var(--line);
     min-height:58px;
@@ -161,46 +170,66 @@
   .mini-folio.corto{border-color:rgba(154,103,0,.3);background:var(--warn-soft)}
   .mini-folio.corto .mini-folio-num{color:var(--warn)}
   .mini-carousel-empty{font-size:11px;color:var(--muted);line-height:1.4;text-align:center}
-  .hero-title{
-    font-family:var(--font-display);font-size:clamp(28px,3.2vw,40px);
-    font-weight:600;margin:16px 0 12px;line-height:1.15;letter-spacing:-.01em;
+  .subtab-bar{
+    display:flex;gap:4px;flex-wrap:wrap;margin-bottom:16px;
+    padding:4px;background:var(--bg);border:1px solid var(--line);border-radius:var(--radius-lg);width:fit-content;
   }
-  .hero-text{margin:0;color:var(--muted);max-width:62ch;line-height:1.7;font-size:14px}
-  .hero-eyebrow{
-    display:inline-flex!important;align-items:center;gap:8px!important;
-    background:var(--black)!important;color:#fff!important;
-    border-radius:var(--radius);letter-spacing:.14em;text-transform:uppercase;font-size:10px!important;
-    padding:6px 12px!important;border:none!important;
+  .subtab-btn{
+    border:none;border-radius:var(--radius);padding:9px 16px;background:transparent;
+    color:var(--muted);font-weight:600;font-size:11px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;
+    transition:all .2s ease;
   }
-  .hero-eyebrow::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--brand);flex-shrink:0}
-  .quick-actions{display:flex;flex-direction:column;gap:12px}
-  .action-card{padding:22px 24px;transition:all .25s ease}
-  .action-card:hover{border-color:var(--brand);box-shadow:var(--shadow-sm)}
-  .action-card h3{
-    margin:0 0 8px;font-family:var(--font-display);font-size:20px;font-weight:600;
-    display:flex;align-items:center;gap:10px;
+  .subtab-btn:hover{color:var(--black);background:#fff}
+  .subtab-btn.active{background:var(--black);color:#fff}
+  .subtab-btn.active[data-prod-codes="attended"]{background:var(--ok)}
+  .alm-steps{
+    display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;
   }
-  .action-card h3::before{
-    content:'';width:24px;height:2px;background:var(--brand);display:inline-block;flex-shrink:0;
+  .alm-step{
+    flex:1;min-width:140px;padding:12px 14px;border-radius:var(--radius-lg);
+    background:var(--card);border:1px solid var(--line);font-size:12px;color:var(--muted);
   }
-  .action-card p{margin:0;color:var(--muted);font-size:13px;line-height:1.55}
-  .tabbar{
-    display:flex;gap:4px;flex-wrap:wrap;margin:0 0 24px;
-    padding:4px;background:var(--card);border:1px solid var(--line);
-    border-radius:var(--radius-lg);width:fit-content;max-width:100%;
-    box-shadow:var(--shadow-sm);
+  .alm-step strong{display:block;color:var(--black);font-size:13px;margin-bottom:2px}
+  .alm-step.active{border-color:var(--brand);background:var(--brand-soft);color:var(--text)}
+  .alm-workspace{
+    display:grid;grid-template-columns:minmax(220px,280px) minmax(0,1fr);gap:16px;align-items:start;
   }
-  .tab-btn{
-    border:none;border-radius:var(--radius);
-    padding:12px 22px;background:transparent;color:var(--muted);
-    font-weight:600;font-size:12px;letter-spacing:.08em;text-transform:uppercase;
-    cursor:pointer;transition:all .22s ease;
+  .alm-folio-panel{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius-lg);
+    padding:12px;max-height:620px;overflow:auto;
   }
-  .tab-btn:hover{color:var(--black);background:var(--bg)}
-  .tab-btn.active{
-    background:var(--black);color:#fff;
-    box-shadow:0 4px 16px rgba(0,0,0,.2), inset 0 -2px 0 var(--brand);
+  .alm-folio-list{display:flex;flex-direction:column;gap:8px}
+  .alm-folio-item{
+    width:100%;text-align:left;padding:12px 14px;border-radius:var(--radius-lg);
+    border:1px solid var(--line);background:var(--bg);cursor:pointer;
+    transition:border-color .2s,background .2s,transform .2s;
   }
+  .alm-folio-item:hover{border-color:var(--brand);transform:translateY(-1px)}
+  .alm-folio-item.active{border-color:var(--brand);background:var(--brand-soft);box-shadow:var(--shadow-sm)}
+  .alm-folio-item-num{font-weight:700;font-size:14px;color:var(--black);margin-bottom:4px}
+  .alm-folio-item-meta{font-size:11px;color:var(--muted);margin-bottom:8px}
+  .alm-folio-item-badges{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+  .alm-detail-panel{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius-lg);padding:16px;
+  }
+  .alm-detail-top{
+    display:flex;justify-content:space-between;align-items:flex-start;gap:14px;
+    margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--line);flex-wrap:wrap;
+  }
+  .alm-detail-title{margin:0 0 4px;font-size:18px;font-weight:700;color:var(--black)}
+  .alm-detail-sub{margin:0;font-size:12px;color:var(--muted)}
+  .alm-detail-actions{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+  .alm-detail-times{
+    display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;
+    margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--line);
+  }
+  .alm-time-item{
+    padding:10px 12px;border-radius:var(--radius);background:var(--bg);border:1px solid var(--line);
+  }
+  .alm-time-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:4px}
+  .alm-time-value{font-size:13px;font-weight:600;color:var(--black);line-height:1.35}
+  .alm-time-value.muted{font-weight:500;color:var(--muted)}
+  .adm-panel.hidden{display:none!important}
   .screen{display:none}
   .screen.active{display:block;animation:fadeIn .35s cubic-bezier(.22,1,.36,1)}
   @keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
@@ -224,15 +253,17 @@
   }
   .token-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
   .token-card{
-    background:linear-gradient(145deg,#f8fbff 0%,#eef4fc 100%);
-    border:2px dashed rgba(29,78,216,.35);
-    border-radius:var(--radius);
+    background:#fff;
+    border:1px solid var(--line);
+    border-left:3px solid var(--brand);
+    border-radius:var(--radius-lg);
     padding:18px 16px;
     text-align:center;
-    box-shadow:var(--shadow);
+    transition:border-color .2s,box-shadow .2s;
   }
-  .token-card.surtido{border-color:rgba(21,128,61,.45);background:linear-gradient(145deg,#f4fdf7 0%,#ecfdf3 100%)}
-  .token-card.corto{border-color:rgba(180,83,9,.45);background:linear-gradient(145deg,#fffbf5 0%,#fef3e2 100%)}
+  .token-card:hover{border-color:var(--brand);box-shadow:var(--shadow-sm)}
+  .token-card.surtido{border-left-color:var(--ok)}
+  .token-card.corto{border-left-color:var(--warn)}
   .token-card-folio{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
   .token-code{
     font-size:36px;font-weight:900;letter-spacing:.35em;
@@ -459,15 +490,18 @@
   .backup-checks label{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text);cursor:pointer}
   .backup-checks input[type="checkbox"]{width:16px;height:16px;accent-color:var(--brand)}
   @media (max-width:1100px){
-    .hero,.grid-2,.grid-2.prod-layout,.two-col{grid-template-columns:1fr}
+    .topbar-inner{grid-template-columns:1fr;gap:12px}
+    .topbar-nav{justify-content:flex-start}
+    .grid-2,.grid-2.prod-layout,.two-col{grid-template-columns:1fr}
+    .alm-workspace{grid-template-columns:1fr}
     .summary{grid-template-columns:repeat(2,minmax(0,1fr))}
     .req-grid{grid-template-columns:1fr 1fr minmax(76px,.55fr) minmax(104px,.7fr)}
     .req-grid .field:nth-child(3){grid-column:1 / -1}
-    .tabbar{width:100%}
   }
   @media (max-width:700px){
     .container{padding:16px}
-    .hero-grid,.summary,.grid-3{grid-template-columns:1fr}
+    .kpi-strip,.hero-grid,.summary,.grid-3{grid-template-columns:1fr}
+    .alm-detail-times{grid-template-columns:1fr 1fr}
     .req-grid{grid-template-columns:1fr}
     .topbar-inner{padding:14px 16px}
     .hero-card{padding:24px 20px}
@@ -478,13 +512,19 @@
 <body>
   <div class="topbar">
     <div class="topbar-inner">
-        <div class="brand" onclick="handleBrandSecretTap(event)">
-          <div class="brand-mark">S</div>
-          <div>
-            <div class="brand-title">SOLIMAT</div>
-          </div>
+      <div class="brand" onclick="handleBrandSecretTap(event)">
+        <div class="brand-mark">S</div>
+        <div>
+          <div class="brand-title">SOLIMAT</div>
         </div>
-      <div class="stack">
+      </div>
+      <nav class="topbar-nav">
+        <button class="tab-btn active" data-tab="prod">Produccion</button>
+        <button class="tab-btn" data-tab="alm">Almacen</button>
+        <button class="tab-btn" data-tab="adm">Administrador</button>
+      </nav>
+      <div class="topbar-meta">
+        <div class="status" id="topbar-session">Sin sesion</div>
         <div class="status sync-live" id="sync-status" hidden><span class="dot"></span> En vivo</div>
         <div class="status" id="clock">--:--:--</div>
       </div>
@@ -492,55 +532,25 @@
   </div>
 
   <div class="container">
-    <section class="hero">
-      <div class="hero-card">
-        <div class="pill ok hero-eyebrow">SOLIMAT</div>
-        <h1 class="hero-title">Control de solicitudes, surtido y catalogo en una sola vista</h1>
-        <p class="hero-text">
-          Plataforma SOLIMAT para gestionar solicitudes, surtido en almacen y administracion del catalogo.
-          Los datos se guardan unicamente en el servidor y se sincronizan en tiempo real para todo el equipo.
-        </p>
-        <div class="hero-grid">
-          <div class="mini-card">
-            <div class="num" id="count-pending">0</div>
-            <div class="lbl">Solicitudes pendientes</div>
-          </div>
-          <div class="mini-card">
-            <div class="num" id="count-surtidas">0</div>
-            <div class="lbl">Solicitudes surtidas</div>
-          </div>
-          <div class="mini-card mini-card-carousel">
-            <div class="num" id="count-codes">0</div>
-            <div class="lbl">Codigos atendidos</div>
-            <div class="mini-carousel" id="hero-attended-carousel">
-              <div class="mini-carousel-stage" id="hero-attended-stage">
-                <div class="mini-carousel-empty">Sin folios atendidos</div>
-              </div>
-            </div>
-          </div>
-        </div>
+    <section class="kpi-strip">
+      <div class="mini-card mini-card--pending">
+        <div class="num" id="count-pending">0</div>
+        <div class="lbl">Solicitudes pendientes</div>
       </div>
-      <div class="quick-actions">
-        <div class="hero-card action-card">
-          <h3>Produccion</h3>
-          <p>Crea solicitudes, agrega materiales y revisa tu historial.</p>
-        </div>
-        <div class="hero-card action-card">
-          <h3>Almacen</h3>
-          <p>Actualiza estatus, cantidad surtida y respuesta a cada solicitud.</p>
-        </div>
-        <div class="hero-card action-card">
-          <h3>Administrador</h3>
-          <p>Gestiona usuarios, catalogo, respaldos e importacion de datos.</p>
+      <div class="mini-card mini-card--surtido">
+        <div class="num" id="count-surtidas">0</div>
+        <div class="lbl">Solicitudes surtidas</div>
+      </div>
+      <div class="mini-card mini-card-carousel">
+        <div class="num" id="count-codes">0</div>
+        <div class="lbl">Codigos atendidos</div>
+        <div class="mini-carousel" id="hero-attended-carousel">
+          <div class="mini-carousel-stage" id="hero-attended-stage">
+            <div class="mini-carousel-empty">Sin folios atendidos</div>
+          </div>
         </div>
       </div>
     </section>
-
-    <nav class="tabbar">
-      <button class="tab-btn active" data-tab="prod">Produccion</button>
-      <button class="tab-btn" data-tab="alm">Almacen</button>
-      <button class="tab-btn" data-tab="adm">Administrador</button>
-    </nav>
 
     <section class="screen active" id="screen-prod">
       <div class="auth-card" id="prod-auth">
@@ -610,9 +620,13 @@
           <div class="panel-head">
             <div>
               <h2 class="panel-title">Mis codigos de verificacion</h2>
-              <p class="panel-sub">Codigos activos para almacen y codigos atendidos de tus solicitudes completadas.</p>
+              <p class="panel-sub">Codigos activos y atendidos de tus solicitudes.</p>
             </div>
             <button class="btn btn-outline btn-sm" onclick="renderProdTokens()">Actualizar</button>
+          </div>
+          <div class="subtab-bar" id="prod-codes-tabs">
+            <button class="subtab-btn active" type="button" data-prod-codes="pending" onclick="setProdTokenTab('pending')">Activos</button>
+            <button class="subtab-btn" type="button" data-prod-codes="attended" onclick="setProdTokenTab('attended')">Atendidos</button>
           </div>
           <div id="prod-tokens" class="token-grid"></div>
         </div>
@@ -666,54 +680,65 @@
             <div class="card"><div class="num" id="sum-corto">0</div><div class="lbl">Cortas</div></div>
           </div>
 
-          <div class="alm-verify-panel" id="alm-verify-panel">
-            <div class="alm-verify-top">
-              <div class="alm-verify-icon" aria-hidden="true">🔐</div>
-              <div>
-                <h3 class="alm-verify-title">Verificar codigo de solicitud</h3>
-                <p class="alm-verify-sub">Produccion te dicta un codigo de 4 digitos por folio. Validarlo aqui desbloquea el surtido de esa solicitud.</p>
-              </div>
-            </div>
-            <div class="alm-folio-chips" id="alm-folio-chips"></div>
-            <div class="alm-verify-form">
-              <div class="field" style="margin:0">
-                <label>Folio pendiente</label>
-                <select id="alm-verify-folio" style="padding:12px;border:1px solid var(--line);border-radius:12px;width:100%"></select>
-              </div>
-              <div class="field" style="margin:0">
-                <label>Codigo de verificacion</label>
-                <input id="alm-verify-token" class="alm-token-input" type="tel" inputmode="numeric" placeholder="1234"
-                  autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="4"
-                  oninput="formatAlmTokenInput(this)" onkeydown="if(event.key==='Enter')verifyAlmToken()">
-              </div>
-              <button class="btn btn-primary alm-verify-btn" type="button" onclick="verifyAlmToken()">Verificar y desbloquear</button>
-            </div>
-            <div class="alm-unlocked-badges" id="alm-unlocked-badges"></div>
+          <div class="alm-steps">
+            <div class="alm-step active"><strong>1. Tomar orden</strong>Selecciona un folio y marca atencion</div>
+            <div class="alm-step"><strong>2. Verificar PIN</strong>Codigo de 4 digitos de produccion</div>
+            <div class="alm-step"><strong>3. Surtir</strong>Captura cantidades y estatus</div>
           </div>
 
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Solicitud</th>
-                  <th>Fecha</th>
-                  <th>Area</th>
-                  <th>No. Parte</th>
-                  <th>Codigo</th>
-                  <th>Descripcion</th>
-                  <th>Unidad</th>
-                  <th>Solicitado</th>
-                  <th>Surtido</th>
-                  <th>Estatus</th>
-                  <th>Progreso</th>
-                  <th>Solicitado por</th>
-                  <th>Surtido por</th>
-                  <th>Atendida en</th>
-                  <th>Tiempo (min)</th>
-                </tr>
-              </thead>
-              <tbody id="alm-table"></tbody>
-            </table>
+          <div class="alm-workspace">
+            <aside class="alm-folio-panel">
+              <div class="alm-folio-list" id="alm-folio-list"></div>
+            </aside>
+            <div class="alm-detail-panel">
+              <div class="alm-verify-panel" id="alm-verify-panel">
+                <div class="alm-verify-top">
+                  <div class="alm-verify-icon" aria-hidden="true">🔐</div>
+                  <div>
+                    <h3 class="alm-verify-title">Verificar codigo</h3>
+                    <p class="alm-verify-sub">Produccion dicta 4 digitos por folio para desbloquear surtido.</p>
+                  </div>
+                </div>
+                <div class="alm-folio-chips" id="alm-folio-chips"></div>
+                <div class="alm-verify-form">
+                  <div class="field" style="margin:0">
+                    <label>Folio</label>
+                    <select id="alm-verify-folio" onchange="selectAlmFolio(this.value)" style="padding:12px;border:1px solid var(--line);border-radius:12px;width:100%"></select>
+                  </div>
+                  <div class="field" style="margin:0">
+                    <label>Codigo</label>
+                    <input id="alm-verify-token" class="alm-token-input" type="tel" inputmode="numeric" placeholder="1234"
+                      autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="4"
+                      oninput="formatAlmTokenInput(this)" onkeydown="if(event.key==='Enter')verifyAlmToken()">
+                  </div>
+                  <button class="btn btn-primary alm-verify-btn" type="button" onclick="verifyAlmToken()">Verificar</button>
+                </div>
+                <div class="alm-unlocked-badges" id="alm-unlocked-badges"></div>
+              </div>
+
+              <div id="alm-detail-head"></div>
+
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Fecha</th>
+                      <th>No. Parte</th>
+                      <th>Codigo</th>
+                      <th>Descripcion</th>
+                      <th>Unidad</th>
+                      <th>Solicitado</th>
+                      <th>Surtido</th>
+                      <th>Estatus</th>
+                      <th>Aceptada</th>
+                      <th>Atendida en</th>
+                      <th>Tiempo (min)</th>
+                    </tr>
+                  </thead>
+                  <tbody id="alm-table"></tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -738,16 +763,28 @@
         </div>
       </div>
       <div class="module-body hidden" id="adm-body">
-        <div class="grid-2">
+        <div class="panel-head" style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--line)">
+          <div>
+            <h2 class="panel-title">Administracion</h2>
+            <p class="panel-sub">Catalogo, usuarios y respaldos del sistema.</p>
+          </div>
+          <div class="stack">
+            <div class="pill ok" id="adm-user-pill">Sesion activa</div>
+            <button class="btn btn-logout btn-sm" onclick="logoutModule('adm')">Salir</button>
+          </div>
+        </div>
+        <div class="subtab-bar" id="adm-subtabs">
+          <button class="subtab-btn active" type="button" data-adm-tab="catalog" onclick="setAdmSubTab('catalog')">Catalogo</button>
+          <button class="subtab-btn" type="button" data-adm-tab="users" onclick="setAdmSubTab('users')">Usuarios</button>
+          <button class="subtab-btn" type="button" data-adm-tab="data" onclick="setAdmSubTab('data')">Datos y respaldos</button>
+        </div>
+
+        <div class="adm-panel" id="adm-panel-catalog">
           <div class="panel">
             <div class="panel-head">
               <div>
                 <h2 class="panel-title">Catalogo de materiales</h2>
-                <p class="panel-sub">Agrega, edita o borra materiales. Un mismo numero de parte puede tener varios materiales en filas separadas.</p>
-              </div>
-              <div class="stack">
-                <div class="pill ok" id="adm-user-pill">Sesion activa</div>
-                <button class="btn btn-logout btn-sm" onclick="logoutModule('adm')">Salir</button>
+                <p class="panel-sub">Agrega, edita o borra materiales.</p>
               </div>
             </div>
 
@@ -782,15 +819,12 @@
                 Importar plantilla
                 <input type="file" accept=".csv,.txt,.tsv,.xls,.xlsx" class="hidden" onchange="importCatalogTemplate(event)">
               </label>
-              <button class="btn btn-secondary" onclick="exportJSON()">Exportar JSON</button>
-              <label class="btn btn-outline" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer">
-                Importar JSON
-                <input type="file" accept="application/json" class="hidden" onchange="importJSON(event)">
-              </label>
             </div>
             <div style="margin-top:14px" class="list" id="catalog-list"></div>
           </div>
+        </div>
 
+        <div class="adm-panel hidden" id="adm-panel-users">
           <div class="panel">
             <div class="panel-head">
               <div>
@@ -832,17 +866,25 @@
               <button class="btn btn-secondary" onclick="exportJSON()">Exportar JSON</button>
             </div>
             <div style="margin-top:14px" class="list" id="user-list"></div>
+          </div>
+        </div>
 
-            <div style="margin-top:16px" class="panel" >
+        <div class="adm-panel hidden" id="adm-panel-data">
+            <div class="panel">
               <div class="panel-head" style="margin-bottom:12px">
                 <div>
-                  <h3 class="panel-title" style="font-size:16px">Datos</h3>
+                  <h3 class="panel-title">Datos</h3>
                   <p class="panel-sub">Herramientas de mantenimiento del sistema.</p>
                 </div>
               </div>
               <div class="stack">
                 <button class="btn btn-danger" onclick="wipeRequests()">Borrar solicitudes</button>
                 <button class="btn btn-danger" onclick="wipeAll()">Borrar todo</button>
+                <button class="btn btn-secondary" onclick="exportJSON()">Exportar JSON</button>
+                <label class="btn btn-outline" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer">
+                  Importar JSON
+                  <input type="file" accept="application/json" class="hidden" onchange="importJSON(event)">
+                </label>
               </div>
             </div>
 
@@ -963,6 +1005,9 @@ let brandTapCount = 0;
 let brandTapTimer = null;
 let masterKeySession = null;
 let unlockedFolios = new Set();
+let selectedAlmFolio = '';
+let prodTokenTab = 'pending';
+let admSubTab = 'catalog';
 
 function purgeLegacyBrowserStorage(){
   try{
@@ -1163,7 +1208,7 @@ async function verifyAlmToken(){
     unlockedFolios.add(String(folio));
     document.getElementById('alm-verify-token').value = '';
     toast(`Folio ${folio} desbloqueado (sin codigo legacy)`, 'ok');
-    renderWarehouse();
+    selectAlmFolio(folio);
     return;
   }
   const ok = await verifySupplyTokenMatch(token, header.supplyTokenHash);
@@ -1174,7 +1219,7 @@ async function verifyAlmToken(){
   unlockedFolios.add(String(folio));
   document.getElementById('alm-verify-token').value = '';
   toast(`Folio ${folio} verificado — ya puedes surtir`, 'ok');
-  renderWarehouse();
+  selectAlmFolio(folio);
 }
 
 function renderAlmVerifyPanel(){
@@ -1216,8 +1261,7 @@ function renderAlmVerifyPanel(){
 }
 
 function selectAlmVerifyFolio(folio){
-  const sel = document.getElementById('alm-verify-folio');
-  if(sel) sel.value = String(folio || '');
+  selectAlmFolio(folio);
   document.getElementById('alm-verify-token')?.focus();
 }
 
@@ -1270,6 +1314,172 @@ function getProdHistoryFolios(){
   return { completed, pending };
 }
 
+function setProdTokenTab(tab){
+  prodTokenTab = tab === 'attended' ? 'attended' : 'pending';
+  document.querySelectorAll('#prod-codes-tabs .subtab-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.prodCodes === prodTokenTab);
+  });
+  renderProdTokens();
+}
+
+function setAdmSubTab(tab){
+  admSubTab = tab || 'catalog';
+  document.querySelectorAll('#adm-subtabs .subtab-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.admTab === admSubTab);
+  });
+  ['catalog', 'users', 'data'].forEach(name => {
+    const panel = document.getElementById(`adm-panel-${name}`);
+    if(panel) panel.classList.toggle('hidden', name !== admSubTab);
+  });
+}
+
+function selectAlmFolio(folio){
+  selectedAlmFolio = String(folio || '');
+  const sel = document.getElementById('alm-verify-folio');
+  if(sel && selectedAlmFolio) sel.value = selectedAlmFolio;
+  renderWarehouse();
+}
+
+function getFilteredAlmRows(){
+  const search = document.getElementById('alm-search')?.value.trim().toLowerCase() || '';
+  const filter = document.getElementById('alm-filter')?.value || '';
+  let rows = [...state.requests];
+  if(filter) rows = rows.filter(r => r.status === filter);
+  if(search){
+    rows = rows.filter(r => [r.area,r.part,r.code,r.desc,r.unit,r.requester,r.suppliedBy,r.requestCode,String(r.id)].some(v => String(v || '').toLowerCase().includes(search)));
+  }
+  return rows;
+}
+
+function getAlmFolioEntries(filteredRows){
+  const map = new Map();
+  for(const r of filteredRows){
+    const folio = String(r.requestCode || '');
+    if(!folio) continue;
+    if(!map.has(folio)) map.set(folio, []);
+    map.get(folio).push(r);
+  }
+  return [...map.entries()]
+    .map(([folio, rows]) => ({ folio, rows, status: folioStatus(rows), first: rows[0] }))
+    .sort((a, b) => Number(b.folio) - Number(a.folio));
+}
+
+function renderAlmFolioList(entries){
+  const host = document.getElementById('alm-folio-list');
+  if(!host) return;
+  if(!entries.length){
+    host.innerHTML = '<div class="empty">Sin folios</div>';
+    return;
+  }
+  host.innerHTML = entries.map(({ folio, rows, status, first }) => {
+    const active = String(folio) === String(selectedAlmFolio) ? ' active' : '';
+    const progress = normalizeProgress(first?.supplyProgress);
+    return `
+    <button type="button" class="alm-folio-item${active}" onclick="selectAlmFolio('${escapeJs(folio)}')">
+      <div class="alm-folio-item-num">Folio ${escapeHtml(folio)}</div>
+      <div class="alm-folio-item-meta">${escapeHtml(first.area)} · ${rows.length} linea(s)</div>
+      <div class="alm-folio-item-badges">
+        <span class="badge ${escapeHtml(status)}">${escapeHtml(status)}</span>
+        <span class="progress-pill ${progressPillClass(progress)}">${escapeHtml(progressLabel(progress))}</span>
+      </div>
+    </button>`;
+  }).join('');
+}
+
+function getFolioAcceptedAt(first){
+  const progress = normalizeProgress(first?.supplyProgress);
+  const at = String(first?.supplyProgressAt || '').trim();
+  if(!at || progress === PROGRESS_PENDING) return '';
+  return at;
+}
+
+function renderAlmDetailHead(folio, folioRows, visibleRows){
+  const host = document.getElementById('alm-detail-head');
+  if(!host) return;
+  if(!folio || !folioRows.length){
+    host.innerHTML = '<div class="empty">Selecciona un folio de la lista</div>';
+    return;
+  }
+  const first = folioRows[0];
+  const suppliedAt = getFolioAttendedAt(folioRows);
+  const acceptedAt = getFolioAcceptedAt(first);
+  const attentionMin = calcAttentionMinutes(first.createdAt, suppliedAt);
+  host.innerHTML = `
+    <div class="alm-detail-top">
+      <div>
+        <h3 class="alm-detail-title">Folio ${escapeHtml(folio)}</h3>
+        <p class="alm-detail-sub">${escapeHtml(first.requester)} · ${escapeHtml(first.area)}</p>
+      </div>
+      <div class="alm-detail-actions">
+        ${renderProgressBadge(first)}
+        ${renderFolioProgressActions(first, visibleRows)}
+      </div>
+    </div>
+    <div class="alm-detail-times">
+      <div class="alm-time-item">
+        <div class="alm-time-label">Creacion</div>
+        <div class="alm-time-value">${escapeHtml(first.createdAt || '—')}</div>
+      </div>
+      <div class="alm-time-item">
+        <div class="alm-time-label">Orden aceptada</div>
+        <div class="alm-time-value ${acceptedAt ? '' : 'muted'}">${escapeHtml(acceptedAt || '—')}</div>
+      </div>
+      <div class="alm-time-item">
+        <div class="alm-time-label">Surtida</div>
+        <div class="alm-time-value ${suppliedAt ? '' : 'muted'}">${escapeHtml(suppliedAt || '—')}</div>
+      </div>
+      <div class="alm-time-item">
+        <div class="alm-time-label">Tiempo (min)</div>
+        <div class="alm-time-value ${attentionMin !== '—' ? '' : 'muted'}">${escapeHtml(attentionMin)}</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderAlmTableRows(rows, visibleRows){
+  if(!rows.length){
+    return `<tr><td colspan="11"><div class="empty" style="margin:12px">Sin lineas para este folio.</div></td></tr>`;
+  }
+  return rows.map(r => {
+    const unit = requestUnit(r);
+    const folio = String(r.requestCode || '');
+    const folioRows = getFolioRows(folio);
+    const folioPending = folioStatus(folioRows) === 'pendiente';
+    const unlocked = isFolioUnlocked(folio, folioRows);
+    const tokenLocked = r.status === 'pendiente' && folioRequiresToken(folioRows) && !unlocked;
+    const workCheck = folioPending ? canWorkFolio(folio) : { ok: true };
+    const progressLocked = folioPending && !workCheck.ok;
+    const locked = tokenLocked || progressLocked;
+    const rowClass = locked ? 'alm-row-locked' : (r.status === 'pendiente' && unlocked && !progressLocked ? 'alm-row-unlocked' : '');
+    const disabled = locked ? 'disabled' : '';
+    const acceptedAt = getFolioAcceptedAt(folioRows[0]);
+    return `
+    <tr class="${rowClass}">
+      <td>${escapeHtml(r.createdAt || '—')}</td>
+      <td>${escapeHtml(r.part)}</td>
+      <td>${escapeHtml(r.code)}</td>
+      <td>${escapeHtml(r.desc)}</td>
+      <td><span class="pill">${escapeHtml(unit)}</span></td>
+      <td><strong>${r.qtyRequested}</strong></td>
+      <td>
+        <input type="number" min="0" value="${r.qtySupplied || 0}" style="width:84px;padding:8px;border:1px solid var(--line);border-radius:10px"
+          ${disabled} onchange="updateRequest(${r.id}, 'qtySupplied', this.value)">
+      </td>
+      <td>
+        <select class="status" ${disabled} onchange="updateRequest(${r.id}, 'status', this.value)" style="padding:8px;border:1px solid var(--line);border-radius:10px">
+          <option value="pendiente" ${r.status === 'pendiente' ? 'selected' : ''}>Pendiente</option>
+          <option value="surtido" ${r.status === 'surtido' ? 'selected' : ''}>Surtido</option>
+          <option value="corto" ${r.status === 'corto' ? 'selected' : ''}>Corto</option>
+        </select>
+      </td>
+      <td>${escapeHtml(acceptedAt || '—')}</td>
+      <td>${escapeHtml(r.suppliedAt || '—')}</td>
+      <td>${escapeHtml(calcAttentionMinutes(r.createdAt, r.suppliedAt))}</td>
+    </tr>
+  `;
+  }).join('');
+}
+
 function renderProdTokens(){
   const panel = document.getElementById('prod-tokens-panel');
   const host = document.getElementById('prod-tokens');
@@ -1280,24 +1490,17 @@ function renderProdTokens(){
     return;
   }
   panel.classList.remove('hidden');
-  const pending = getProdTokenCards('pending');
-  const attended = getProdTokenCards('attended');
-  const pendingHtml = pending.length
-    ? `<div class="token-grid">${pending.map(renderTokenCard).join('')}</div>`
-    : '<div class="empty">No tienes codigos activos pendientes de surtir.</div>';
-  const attendedHtml = attended.length
-    ? `<div class="token-grid">${attended.map(renderTokenCard).join('')}</div>`
-    : '<div class="empty">Cuando almacen complete tus solicitudes, apareceran aqui.</div>';
-  host.innerHTML = `
-    <div class="prod-tokens-block">
-      <h3 class="prod-tokens-block-title">Codigos activos</h3>
-      ${pendingHtml}
-    </div>
-    <div class="prod-tokens-block">
-      <h3 class="prod-tokens-block-title">Codigos atendidos</h3>
-      ${attendedHtml}
-    </div>
-  `;
+  document.querySelectorAll('#prod-codes-tabs .subtab-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.prodCodes === prodTokenTab);
+  });
+  const cards = getProdTokenCards(prodTokenTab);
+  if(!cards.length){
+    host.innerHTML = prodTokenTab === 'attended'
+      ? '<div class="empty">Cuando almacen complete tus solicitudes, apareceran aqui.</div>'
+      : '<div class="empty">No tienes codigos activos pendientes de surtir.</div>';
+    return;
+  }
+  host.innerHTML = cards.map(renderTokenCard).join('');
 }
 
 function getFolioAttendedAt(rows){
@@ -3063,6 +3266,14 @@ function syncModuleVisibility(){
   set('prod', auth.prod, auth.prodUser ? `Produccion: ${auth.prodUser}` : 'Sesion activa');
   set('alm', auth.alm, auth.almUser ? `Almacen: ${auth.almUser}` : 'Sesion activa');
   set('adm', auth.adm, auth.admUser ? `Admin: ${auth.admUser}` : 'Sesion activa');
+  const sessionEl = document.getElementById('topbar-session');
+  if(sessionEl){
+    const parts = [];
+    if(auth.prod) parts.push(`Prod: ${auth.prodUser || 'activo'}`);
+    if(auth.alm) parts.push(`Alm: ${auth.almUser || 'activo'}`);
+    if(auth.adm) parts.push(`Adm: ${auth.admUser || 'activo'}`);
+    sessionEl.textContent = parts.length ? parts.join(' · ') : 'Sin sesion';
+  }
 }
 
 function syncModeLabel(){
@@ -3526,21 +3737,24 @@ function renderProdHistory(){
 }
 
 function renderWarehouse(){
+  const listHost = document.getElementById('alm-folio-list');
+  const tbody = document.getElementById('alm-table');
+  const panel = document.getElementById('alm-verify-panel');
   if(!auth.alm){
-    document.getElementById('alm-table').innerHTML = `<tr><td colspan="15"><div class="empty" style="margin:12px">Inicia sesion de Almacen para ver y modificar solicitudes.</div></td></tr>`;
-    const panel = document.getElementById('alm-verify-panel');
+    if(listHost) listHost.innerHTML = '<div class="empty">Inicia sesion de Almacen</div>';
+    if(tbody) tbody.innerHTML = `<tr><td colspan="11"><div class="empty" style="margin:12px">Inicia sesion de Almacen para ver y modificar solicitudes.</div></td></tr>`;
+    renderAlmDetailHead('', [], []);
     if(panel) panel.classList.add('hidden');
     return;
   }
   renderAlmVerifyPanel();
-  const search = document.getElementById('alm-search').value.trim().toLowerCase();
-  const filter = document.getElementById('alm-filter').value;
-  const tbody = document.getElementById('alm-table');
-  let rows = [...state.requests];
-  if(filter) rows = rows.filter(r => r.status === filter);
-  if(search){
-    rows = rows.filter(r => [r.area,r.part,r.code,r.desc,r.unit,r.requester,r.suppliedBy,r.requestCode,String(r.id)].some(v => String(v || '').toLowerCase().includes(search)));
+  const filtered = getFilteredAlmRows();
+  const entries = getAlmFolioEntries(filtered);
+  if(selectedAlmFolio && !entries.find(e => String(e.folio) === String(selectedAlmFolio))){
+    selectedAlmFolio = entries[0]?.folio || '';
   }
+  if(!selectedAlmFolio && entries.length) selectedAlmFolio = entries[0].folio;
+
   const total = state.requests.length;
   const pending = state.requests.filter(r => r.status === 'pendiente').length;
   const surtido = state.requests.filter(r => r.status === 'surtido').length;
@@ -3549,72 +3763,18 @@ function renderWarehouse(){
   document.getElementById('sum-pending').textContent = pending;
   document.getElementById('sum-surtido').textContent = surtido;
   document.getElementById('sum-corto').textContent = corto;
-  if(!rows.length){
-    tbody.innerHTML = `<tr><td colspan="15"><div class="empty" style="margin:12px">Sin resultados.</div></td></tr>`;
-    return;
-  }
-  tbody.innerHTML = rows.map(r => {
-    const unit = requestUnit(r);
-    const folio = String(r.requestCode || '');
-    const folioRows = getFolioRows(folio);
-    const folioPending = folioStatus(folioRows) === 'pendiente';
-    const unlocked = isFolioUnlocked(folio, folioRows);
-    const tokenLocked = r.status === 'pendiente' && folioRequiresToken(folioRows) && !unlocked;
-    const workCheck = folioPending ? canWorkFolio(folio) : { ok: true };
-    const progressLocked = folioPending && !workCheck.ok;
-    const locked = tokenLocked || progressLocked;
-    const rowClass = locked ? 'alm-row-locked' : (r.status === 'pendiente' && unlocked && !progressLocked ? 'alm-row-unlocked' : '');
-    const disabled = locked ? 'disabled' : '';
-    let lockNote = '';
-    if(progressLocked && normalizeProgress(r.supplyProgress) === PROGRESS_ATTENDING){
-      lockNote = `<div class="alm-lock-note">Atiende ${escapeHtml(r.supplyProgressBy || 'otro almacenista')}</div>`;
-    }else if(progressLocked){
-      lockNote = '<div class="alm-lock-note">Primero toma la orden</div>';
-    }else if(tokenLocked){
-      lockNote = '<div class="alm-lock-note">🔒 Verifica codigo arriba</div>';
-    }else if(r.status === 'pendiente' && unlocked){
-      lockNote = '<div class="alm-lock-note" style="color:#166534">✓ Desbloqueado</div>';
+
+  renderAlmFolioList(entries);
+  const folioRows = selectedAlmFolio ? getFolioRows(selectedAlmFolio) : [];
+  renderAlmDetailHead(selectedAlmFolio, folioRows, filtered);
+  const detailRows = filtered.filter(r => String(r.requestCode) === String(selectedAlmFolio));
+  if(tbody){
+    if(!entries.length){
+      tbody.innerHTML = `<tr><td colspan="11"><div class="empty" style="margin:12px">Sin resultados.</div></td></tr>`;
+    }else{
+      tbody.innerHTML = renderAlmTableRows(detailRows, filtered);
     }
-    return `
-    <tr class="${rowClass}">
-      <td>
-        <strong>${escapeHtml(r.requestCode || '0')}</strong>
-        ${lockNote}
-      </td>
-      <td>${escapeHtml(r.createdAt)}</td>
-      <td>${escapeHtml(r.area)}</td>
-      <td>${escapeHtml(r.part)}</td>
-      <td>${escapeHtml(r.code)}</td>
-      <td>${escapeHtml(r.desc)}</td>
-      <td><span class="pill">${escapeHtml(unit)}</span></td>
-      <td><strong>${r.qtyRequested}</strong></td>
-      <td>
-        <input type="number" min="0" value="${r.qtySupplied || 0}" style="width:84px;padding:8px;border:1px solid var(--line);border-radius:10px"
-          ${disabled} onchange="updateRequest(${r.id}, 'qtySupplied', this.value)">
-        <div class="muted small">${escapeHtml(unit)}</div>
-      </td>
-      <td>
-        <select class="status" ${disabled} onchange="updateRequest(${r.id}, 'status', this.value)" style="padding:8px;border:1px solid var(--line);border-radius:10px">
-          <option value="pendiente" ${r.status === 'pendiente' ? 'selected' : ''}>Pendiente</option>
-          <option value="surtido" ${r.status === 'surtido' ? 'selected' : ''}>Surtido</option>
-          <option value="corto" ${r.status === 'corto' ? 'selected' : ''}>Corto</option>
-        </select>
-      </td>
-      <td>
-        ${renderProgressBadge(r)}
-        ${renderFolioProgressActions(r, rows)}
-      </td>
-      <td>
-        <span>${escapeHtml(r.requester)}</span>
-      </td>
-      <td>
-        <span class="pill ${r.suppliedBy ? 'ok' : 'warn'}">${escapeHtml(r.suppliedBy || 'Pendiente')}</span>
-      </td>
-      <td>${escapeHtml(r.suppliedAt || '—')}</td>
-      <td>${escapeHtml(calcAttentionMinutes(r.createdAt, r.suppliedAt))}</td>
-    </tr>
-  `;
-  }).join('');
+  }
 }
 
 function exportWarehouseExcel(){
@@ -4192,11 +4352,12 @@ function importJSON(event){
 
 function refreshAll(){
   syncModuleVisibility();
+  setProdTokenTab(prodTokenTab);
+  setAdmSubTab(admSubTab);
   updateTopCounts();
   initSelectors();
   renderProdRows();
   renderProdHistory();
-  renderProdTokens();
   renderWarehouse();
   renderUsers();
   renderCatalog();
