@@ -1072,7 +1072,6 @@ function normalizeState(input){
       for(const r of rows){
         r.supplyProgress = PROGRESS_DELIVERED;
         r.supplyProgressBy = supplied.suppliedBy || r.supplyProgressBy || '';
-        r.supplyProgressAt = supplied.suppliedAt || r.supplyProgressAt || '';
       }
     }
   }
@@ -2053,7 +2052,11 @@ function setFolioProgress(folio, progress, by, at){
   for(const r of getFolioRows(folio)){
     r.supplyProgress = progress;
     r.supplyProgressBy = by;
-    r.supplyProgressAt = at;
+    if(progress === PROGRESS_PENDING){
+      r.supplyProgressAt = '';
+    }else if(progress === PROGRESS_ATTENDING){
+      r.supplyProgressAt = at;
+    }
     markRequestDirty(r);
   }
   dirtyFolioProgress.add(String(folio));
@@ -2066,8 +2069,7 @@ function markFolioProgressIfCompleted(folio){
   setFolioProgress(
     folio,
     PROGRESS_DELIVERED,
-    supplied.suppliedBy || getAlmActor(),
-    supplied.suppliedAt || fmtDT()
+    supplied.suppliedBy || getAlmActor()
   );
 }
 
