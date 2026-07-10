@@ -2,7 +2,7 @@
 
 **Solicitud de Material** — aplicación web para gestionar pedidos de material entre **Producción**, **Almacén** y **Administración**.
 
-Diseñada para el flujo operativo de Dana: crear solicitudes, verificar con código PIN, surtir y dar seguimiento al tiempo de atención.
+Diseñada para el flujo operativo de una empresa automotriz: crear solicitudes, verificar con código PIN, surtir y dar seguimiento al tiempo de atención.
 
 ---
 
@@ -142,11 +142,7 @@ Los usuarios se administran desde el módulo **Administrador**.
 
 ---
 
-## Notas
 
-- La app es **client-side**: el navegador habla directo con Supabase.
-- Los datos viven en el servidor; no se usa almacenamiento local como fuente de verdad.
-- El archivo `DANA Solicitud de material (4).html` es una versión legacy / referencia y no es la app activa.
 
 ---
 
