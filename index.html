@@ -512,7 +512,7 @@
 <body>
   <div class="topbar">
     <div class="topbar-inner">
-      <div class="brand" onclick="handleBrandSecretTap(event)">
+      <div class="brand">
         <div class="brand-mark">S</div>
         <div>
           <div class="brand-title">SOLIMAT</div>
@@ -555,7 +555,7 @@
     <section class="screen active" id="screen-prod">
       <div class="auth-card" id="prod-auth">
         <h3>Acceso Produccion</h3>
-        <p>Ingresa con un usuario de Produccion. Solo quienes entren podran crear solicitudes.</p>
+        <p>Ingresa con tu usuario de Supabase Auth (email interno: usuario@solimat.internal).</p>
         <div class="two-col">
           <div class="field">
             <label>Usuario</label>
@@ -636,7 +636,7 @@
     <section class="screen" id="screen-alm">
       <div class="auth-card" id="alm-auth">
         <h3>Acceso Almacen</h3>
-        <p>Ingresa con un usuario de Almacen. Solo quienes entren podran cambiar estatus y cantidades.</p>
+        <p>Ingresa con tu usuario de Supabase Auth (email interno: usuario@solimat.internal).</p>
         <div class="two-col">
           <div class="field">
             <label>Usuario</label>
@@ -747,7 +747,7 @@
     <section class="screen" id="screen-adm">
       <div class="auth-card" id="adm-auth">
         <h3>Acceso Administrador</h3>
-        <p>Ingresa con la cuenta de administrador para modificar catalogo, usuarios y respaldos.</p>
+        <p>Ingresa con tu cuenta admin de Supabase Auth (email interno: usuario@solimat.internal).</p>
         <div class="two-col">
           <div class="field">
             <label>Usuario</label>
@@ -847,10 +847,6 @@
                 <label>Usuario</label>
                 <input id="usr-user" type="text" placeholder="usuario">
               </div>
-              <div class="field">
-                <label>Contrasena</label>
-                <input id="usr-pass" type="password" placeholder="Clave (vacío = no cambiar al editar)" autocomplete="new-password">
-              </div>
               <div class="field" style="grid-column:1 / -1">
                 <label>Rol</label>
                 <select id="usr-role">
@@ -861,8 +857,13 @@
                 </select>
               </div>
             </div>
+            <p class="auth-note" style="margin-top:0;border-top:none;padding-top:0">
+              La contraseña se gestiona en Supabase Auth. Email interno:
+              <strong>usuario@solimat.internal</strong>. Crea el usuario en Authentication → Users
+              y vincula <code>auth_id</code> (ver README).
+            </p>
             <div class="stack">
-              <button class="btn btn-primary" onclick="saveUser()">Guardar usuario</button>
+              <button class="btn btn-primary" onclick="saveUser()">Guardar perfil</button>
               <button class="btn btn-secondary" onclick="exportJSON()">Exportar JSON</button>
             </div>
             <div style="margin-top:14px" class="list" id="user-list"></div>
@@ -947,8 +948,7 @@ const AUTH_KEY = 'dana_material_auth_v2';
 const AUTH_ACTIVITY_KEY = 'dana_material_auth_activity_v1';
 const LEGACY_STORAGE_KEYS = ['dana_material_local_v2', 'dana_material_local_v1'];
 const SESSION_TIMEOUT_MS = 60 * 60 * 1000;
-const MASTER_KEY_DURATION_MS = 60 * 1000;
-const MASTER_USER_ID_PREFIX = '__MASTER_';
+const AUTH_EMAIL_DOMAIN = 'solimat.internal';
 const CATALOG_UNITS = ['pza', 'kg', 'g', 'L', 'm', 'm²', 'rollo', 'caja', 'lt', 'gal'];
 const BACKUP_INTERVAL_MS = 10 * 60 * 1000;
 const REMOTE_DB_REQUIRED = true;
@@ -1001,9 +1001,7 @@ let backupFolderHandle = null;
 let backupTimer = null;
 let activeAppTab = 'prod';
 let lastActivityAt = Date.now();
-let brandTapCount = 0;
-let brandTapTimer = null;
-let masterKeySession = null;
+let authProfile = null;
 let unlockedFolios = new Set();
 let selectedAlmFolio = '';
 let prodTokenTab = 'pending';
@@ -1634,56 +1632,107 @@ function initHeroCarouselAutoplay(){
   });
 }
 
-async function hashPassword(plain){
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('solimat:' + plain));
-  return PASS_HASH_PREFIX + [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+function authEmailFromUsername(username){
+  const user = String(username || '').trim().toLowerCase();
+  if(!user) return '';
+  if(user.includes('@')) return user;
+  return `${user}@${AUTH_EMAIL_DOMAIN}`;
 }
 
-function isHashedPassword(value){
-  return String(value || '').startsWith(PASS_HASH_PREFIX);
+function clearModuleAuthFlags(){
+  auth = { prod:false, alm:false, adm:false, prodUser:'', prodLogin:'', almUser:'', almLogin:'', admUser:'' };
+  authProfile = null;
+  unlockedFolios.clear();
 }
 
-async function verifyPassword(plain, stored){
-  if(!stored) return false;
-  if(isHashedPassword(stored)) return stored === await hashPassword(plain);
-  return stored === plain;
-}
-
-async function findUserForLogin(username, password, mod){
-  for(const u of state.users){
-    if(String(u.user) !== String(username) || !roleAllows(u.role, mod)) continue;
-    if(await verifyPassword(password, u.pass)) return u;
+function applyAuthFromProfile(profile){
+  const name = String(profile?.name || profile?.user || '');
+  const login = String(profile?.user || '');
+  const role = String(profile?.role || 'produccion');
+  authProfile = {
+    id: String(profile?.id || ''),
+    name,
+    user: login,
+    role,
+    auth_id: profile?.auth_id || null
+  };
+  auth.prod = roleAllows(role, 'prod');
+  auth.alm = roleAllows(role, 'alm');
+  auth.adm = roleAllows(role, 'adm');
+  auth.prodUser = auth.prod ? name : '';
+  auth.prodLogin = auth.prod ? login : '';
+  auth.almUser = auth.alm ? name : '';
+  auth.almLogin = auth.alm ? login : '';
+  auth.admUser = auth.adm ? name : '';
+  if(auth.prod){
+    const requester = document.getElementById('prod-requester');
+    if(requester) requester.value = name;
   }
-  return null;
+  saveAuth();
 }
 
-async function verifySupabaseLogin(username, password){
-  const hashed = await hashPassword(password);
-  const { data, error } = await supabaseClient.rpc('verify_user_login', {
-    p_usuario: username,
-    p_contrasena: hashed
-  });
+async function fetchAuthProfile(){
+  if(!supabaseClient) return null;
+  const { data, error } = await supabaseClient.rpc('current_user_profile');
   if(error) throw error;
   if(!data || typeof data !== 'object') return null;
   return {
     id: String(data.id || ''),
     name: String(data.name || ''),
     user: String(data.user || ''),
-    role: String(data.role || 'produccion')
+    role: String(data.role || 'produccion'),
+    auth_id: data.auth_id || null
   };
 }
 
-async function ensurePasswordHashed(value){
-  if(!value) return '';
-  if(isHashedPassword(value)) return value;
-  return hashPassword(value);
+async function verifySupabaseLogin(username, password){
+  const email = authEmailFromUsername(username);
+  const { data, error } = await supabaseClient.auth.signInWithPassword({
+    email,
+    password
+  });
+  if(error) throw error;
+  if(!data?.session) return null;
+
+  let profile = null;
+  try{
+    profile = await fetchAuthProfile();
+  }catch(e){
+    console.error(e);
+  }
+
+  if(!profile){
+    const { data: row, error: rowError } = await supabaseClient
+      .from('usuarios')
+      .select('id,nombre,usuario,rol,auth_id')
+      .eq('auth_id', data.user.id)
+      .eq('activo', true)
+      .maybeSingle();
+    if(rowError) throw rowError;
+    if(row){
+      profile = {
+        id: String(row.id || ''),
+        name: String(row.nombre || ''),
+        user: String(row.usuario || username),
+        role: String(row.rol || 'produccion'),
+        auth_id: row.auth_id || data.user.id
+      };
+    }
+  }
+
+  if(!profile){
+    await supabaseClient.auth.signOut();
+    throw new Error('Perfil no vinculado: crea el usuario Auth y asigna auth_id en usuarios');
+  }
+
+  return profile;
 }
 
 async function loadSupabaseUsersAdmin(){
   if(!supabaseClient) return;
   const { data, error } = await supabaseClient
     .from('usuarios')
-    .select('id,nombre,usuario,rol,activo')
+    .select('id,nombre,usuario,rol,activo,auth_id')
     .eq('activo', true);
   if(error) throw error;
   state.users = (data || []).map(item => ({
@@ -1691,8 +1740,46 @@ async function loadSupabaseUsersAdmin(){
     name: String(item.nombre || ''),
     user: String(item.usuario || ''),
     pass: '',
-    role: String(item.rol || 'produccion')
+    role: String(item.rol || 'produccion'),
+    auth_id: item.auth_id || null
   })).filter(u => u.id || u.user);
+}
+
+async function hasSupabaseSession(){
+  if(!supabaseClient) return false;
+  const { data } = await supabaseClient.auth.getSession();
+  return !!data?.session;
+}
+
+async function restoreSupabaseAuthSession(){
+  if(!supabaseClient) return false;
+  const { data } = await supabaseClient.auth.getSession();
+  if(!data?.session) return false;
+  try{
+    const profile = await fetchAuthProfile();
+    if(!profile){
+      const { data: row } = await supabaseClient
+        .from('usuarios')
+        .select('id,nombre,usuario,rol,auth_id')
+        .eq('auth_id', data.session.user.id)
+        .eq('activo', true)
+        .maybeSingle();
+      if(!row) return false;
+      applyAuthFromProfile({
+        id: String(row.id || ''),
+        name: String(row.nombre || ''),
+        user: String(row.usuario || ''),
+        role: String(row.rol || 'produccion'),
+        auth_id: row.auth_id
+      });
+      return true;
+    }
+    applyAuthFromProfile(profile);
+    return true;
+  }catch(e){
+    console.error(e);
+    return false;
+  }
 }
 
 function loadState(){
@@ -1707,26 +1794,7 @@ function loadState(){
 }
 
 function loadAuth(){
-  return { prod:false, alm:false, adm:false, prodUser:'', prodLogin:'', almUser:'', admUser:'' };
-}
-
-function isMasterUserId(id){
-  return String(id || '').startsWith(MASTER_USER_ID_PREFIX);
-}
-
-function isMasterKeyActive(){
-  return !!(masterKeySession && Date.now() < masterKeySession.expiresAt);
-}
-
-function handleBrandSecretTap(event){
-  if(event.target.closest('.brand-title')) return;
-  brandTapCount++;
-  clearTimeout(brandTapTimer);
-  brandTapTimer = setTimeout(() => { brandTapCount = 0; }, 1200);
-  if(brandTapCount >= 5){
-    brandTapCount = 0;
-    activateMasterKey();
-  }
+  return { prod:false, alm:false, adm:false, prodUser:'', prodLogin:'', almUser:'', almLogin:'', admUser:'' };
 }
 
 async function saveStateImmediate(options = {}){
@@ -1762,96 +1830,6 @@ async function saveStateImmediate(options = {}){
   refreshAll();
 }
 
-async function activateMasterKey(){
-  if(isMasterKeyActive()){
-    toast('Acceso especial ya activo', 'bad');
-    return;
-  }
-  const now = Date.now();
-  const id = `${MASTER_USER_ID_PREFIX}${now}`;
-  const plainPass = Math.random().toString(36).slice(2, 10);
-  const tempUser = {
-    id,
-    name: 'Acceso Especial',
-    user: `esp_${now.toString(36)}`,
-    pass: await hashPassword(plainPass),
-    role: 'todos'
-  };
-  state.users.push(tempUser);
-  masterKeySession = {
-    userId: id,
-    userName: tempUser.name,
-    expiresAt: now + MASTER_KEY_DURATION_MS,
-    timerId: null
-  };
-  auth.prod = true;
-  auth.prodUser = tempUser.name;
-  auth.alm = true;
-  auth.almUser = tempUser.name;
-  auth.adm = true;
-  auth.admUser = tempUser.name;
-  saveAuth();
-  touchActivity();
-  syncModuleVisibility();
-  renderProdHistory();
-  renderWarehouse();
-  renderUsers();
-  renderCatalog();
-  if(!prodRows.length) addProdRow();
-  masterKeySession.timerId = setTimeout(expireMasterKey, MASTER_KEY_DURATION_MS);
-  toast('Permisos especiales activos (1 min)', 'ok');
-}
-
-async function expireMasterKey(){
-  if(!masterKeySession) return;
-  clearTimeout(masterKeySession.timerId);
-  const userId = masterKeySession.userId;
-  masterKeySession = null;
-  state.users = state.users.filter(u => String(u.id) !== String(userId));
-  logoutAllModules('');
-  toast('Permisos especiales finalizados', 'bad');
-}
-
-function cleanupStaleMasterUsers(){
-  const now = Date.now();
-  let changed = false;
-  state.users = state.users.filter(u => {
-    if(!isMasterUserId(u.id)) return true;
-    const ts = Number(String(u.id).slice(MASTER_USER_ID_PREFIX.length));
-    if(ts && now - ts < MASTER_KEY_DURATION_MS) return true;
-    changed = true;
-    return false;
-  });
-  return changed;
-}
-
-function restoreMasterKeySessionIfNeeded(){
-  const masterUser = state.users.find(u => isMasterUserId(u.id));
-  if(!masterUser) return;
-  const ts = Number(String(masterUser.id).slice(MASTER_USER_ID_PREFIX.length));
-  const expiresAt = ts + MASTER_KEY_DURATION_MS;
-  const remaining = expiresAt - Date.now();
-  if(remaining <= 0){
-    state.users = state.users.filter(u => String(u.id) !== String(masterUser.id));
-    return;
-  }
-  masterKeySession = {
-    userId: masterUser.id,
-    userName: masterUser.name,
-    expiresAt,
-    timerId: setTimeout(expireMasterKey, remaining)
-  };
-  if(!(auth.prod || auth.alm || auth.adm)){
-    auth.prod = true;
-    auth.prodUser = masterUser.name;
-    auth.alm = true;
-    auth.almUser = masterUser.name;
-    auth.adm = true;
-    auth.admUser = masterUser.name;
-    saveAuth();
-  }
-}
-
 function touchActivity(){
   lastActivityAt = Date.now();
 }
@@ -1864,10 +1842,18 @@ function checkSessionTimeout(){
 }
 
 function logoutAllModules(reason = ''){
-  const mods = ['prod', 'alm', 'adm'].filter(mod => auth[mod]);
-  if(!mods.length) return;
-  mods.forEach(mod => logoutModule(mod, { silent: true }));
-  if(reason) toast(reason, 'bad');
+  const hadSession = !!(auth.prod || auth.alm || auth.adm);
+  clearModuleAuthFlags();
+  saveAuth();
+  ['prod', 'alm', 'adm'].forEach(mod => clearLoginFields(mod));
+  renderProdHistory();
+  renderWarehouse();
+  renderUsers();
+  renderCatalog();
+  if(SUPABASE_ENABLED && supabaseClient){
+    supabaseClient.auth.signOut().catch(e => console.error(e));
+  }
+  if(hadSession && reason) toast(reason, 'bad');
 }
 
 function loadBackupConfig(){
@@ -2168,44 +2154,27 @@ function normalizeSupabaseRole(role){
 }
 
 function supabaseUserPayload(item){
-  const payload = {
+  return {
     id: String(item.id || item.user || item.name || ''),
     nombre: String(item.name || ''),
     usuario: String(item.user || ''),
     rol: normalizeSupabaseRole(item.role),
-    activo: true
+    activo: true,
+    contrasena: null
   };
-  if(item.pass) payload.contrasena = String(item.pass);
-  return payload;
 }
 
 async function syncSupabaseTable(table, localItems, keyOf, payloadOf, conflictColumn, options = {}){
   const { allowDelete = table !== 'usuarios' } = options;
-  if(table === 'usuarios'){
-    localItems = (localItems || []).filter(item => !isMasterUserId(item.id));
-  }
   const { data: remoteItems, error } = await supabaseClient.from(table).select('*');
   if(error) throw error;
 
   const localKeys = new Set();
   const payloads = [];
   for(const item of localItems){
-    let payload = payloadOf(item);
+    const payload = payloadOf(item);
     const key = String(keyOf(item) || payload[conflictColumn] || '');
     if(!key) continue;
-    if(table === 'usuarios'){
-      if(!payload.contrasena){
-        const remoteRow = (remoteItems || []).find(r => String(r.id) === key);
-        if(remoteRow?.contrasena) payload.contrasena = String(remoteRow.contrasena);
-      }
-      if(payload.contrasena){
-        payload.contrasena = await ensurePasswordHashed(payload.contrasena);
-      }
-      if(!payload.contrasena){
-        console.warn('Omitiendo upsert de usuario sin contrasena:', key);
-        continue;
-      }
-    }
     localKeys.add(key);
     payloads.push(payload);
   }
@@ -2240,7 +2209,8 @@ async function syncSupabaseTable(table, localItems, keyOf, payloadOf, conflictCo
 
 
 async function loadSupabaseState(options = {}){
-  const { includeUsers = true } = options;
+  const canLoadUsers = !!(auth.adm || (authProfile && roleAllows(authProfile.role, 'adm')));
+  const { includeUsers = canLoadUsers } = options;
   if(!supabaseClient) return null;
 
   const queries = [
@@ -2250,7 +2220,7 @@ async function loadSupabaseState(options = {}){
     supabaseClient.from('solicitud_detalles').select('*')
   ];
   if(includeUsers){
-    queries.splice(1, 0, supabaseClient.from('usuarios').select('id,nombre,usuario,rol,activo').eq('activo', true));
+    queries.splice(1, 0, supabaseClient.from('usuarios').select('id,nombre,usuario,rol,activo,auth_id').eq('activo', true));
   }
 
   const results = await Promise.all(queries);
@@ -2319,7 +2289,8 @@ async function loadSupabaseState(options = {}){
         name: String(item.nombre || ''),
         user: String(item.usuario || ''),
         pass: '',
-        role: String(item.rol || 'produccion')
+        role: String(item.rol || 'produccion'),
+        auth_id: item.auth_id || null
       })).filter(u => u.id || u.user)
     : [];
 
@@ -2422,6 +2393,8 @@ async function saveSupabaseState(nextState, options = {}){
 
 async function syncSupabaseState(){
   if(!SUPABASE_ENABLED || isSaving) return;
+  if(!(auth.prod || auth.alm || auth.adm)) return;
+  if(!(await hasSupabaseSession())) return;
   isSyncing = true;
   updateSyncStatus(true);
   try{
@@ -3030,7 +3003,7 @@ function saveSharePointState(nextState, options = {}){
   if(syncUsers){
     syncSharePointList(
       SHAREPOINT_LISTS.usuarios,
-      normalized.users.filter(u => !isMasterUserId(u.id)),
+      normalized.users,
       item => String(item.id || item.user || item.name || ''),
       item => ({
         Title: String(item.id || item.user || item.name || ''),
@@ -3238,7 +3211,9 @@ function hideLoading(){
 
 function setActiveTab(tab, options = {}){
   const { skipLogout = false } = options;
-  if(!skipLogout && tab !== activeAppTab && !isMasterKeyActive()){
+  // Con Supabase Auth hay una sola sesion JWT: no cerrar al cambiar de modulo.
+  // En SharePoint (legacy) se mantiene el cierre al cambiar de pestana.
+  if(!SUPABASE_ENABLED && !skipLogout && tab !== activeAppTab){
     const leavingMod = activeAppTab;
     if(auth[leavingMod]){
       const labels = { prod: 'Produccion', alm: 'Almacen', adm: 'Administrador' };
@@ -3336,70 +3311,76 @@ async function loginModule(mod){
     return;
   }
 
+  if(!SUPABASE_ENABLED){
+    toast('Configura Supabase Auth para iniciar sesion', 'bad');
+    return;
+  }
+
   let found = null;
   try{
-    if(SUPABASE_ENABLED){
-      found = await verifySupabaseLogin(user, pass);
-    }else{
-      found = await findUserForLogin(user, pass, mod);
-    }
+    showLoading('Verificando credenciales...');
+    found = await verifySupabaseLogin(user, pass);
   }catch(e){
     console.error(e);
-    toast('Error al verificar credenciales', 'bad');
+    const msg = String(e?.message || e || '');
+    if(msg.includes('Perfil no vinculado')){
+      toast('Usuario Auth sin perfil vinculado (auth_id). Revisa el README.', 'bad');
+    }else{
+      toast('Usuario o contrasena incorrectos', 'bad');
+    }
     return;
+  }finally{
+    hideLoading();
   }
 
   if(!found || !roleAllows(found.role, mod)){
-    toast(mod === 'adm' ? 'Credenciales de administrador incorrectas' : 'Usuario o contrasena incorrectos', 'bad');
+    if(found){
+      await supabaseClient.auth.signOut();
+      clearModuleAuthFlags();
+      saveAuth();
+    }
+    toast(mod === 'adm' ? 'Credenciales de administrador incorrectas' : 'Sin permiso para este modulo', 'bad');
     return;
   }
 
-  if(mod === 'adm'){
-    auth.adm = true; auth.admUser = found.name || found.user;
-    saveAuth();
-    toast('Administrador desbloqueado', 'ok');
-    setActiveTab('adm');
-    try{
-      if(SUPABASE_ENABLED) await loadSupabaseUsersAdmin();
-    }catch(e){
-      console.error(e);
+  applyAuthFromProfile(found);
+  touchActivity();
+  clearLoginFields(mod);
+
+  try{
+    showLoading('Cargando datos del servidor...');
+    const remote = await loadSupabaseState();
+    if(remote){
+      state = normalizeState(remote);
+      lastRemoteSnapshot = JSON.stringify(normalizeState(state));
+      lastSyncAt = Date.now();
     }
-    renderUsers();
-    renderCatalog();
-    clearLoginFields('adm');
-    return;
+    if(auth.adm){
+      try{ await loadSupabaseUsersAdmin(); }catch(e){ console.error(e); }
+    }
+  }catch(e){
+    console.error(e);
+    toast('Sesion iniciada, pero no se pudieron cargar todos los datos', 'bad');
+  }finally{
+    hideLoading();
   }
-  if(mod === 'prod'){
-    auth.prod = true;
-    auth.prodUser = found.name || found.user;
-    auth.prodLogin = found.user || user;
-    document.getElementById('prod-requester').value = found.name || found.user;
-    toast('Produccion desbloqueada', 'ok');
-    setActiveTab('prod');
-    if(!prodRows.length) addProdRow();
-    renderProdTokens();
-    clearLoginFields('prod');
-  }else{
-    auth.alm = true;
-    auth.almUser = found.name || found.user;
-    auth.almLogin = found.user || user;
-    toast('Almacen desbloqueado', 'ok');
-    setActiveTab('alm');
-    clearLoginFields('alm');
-  }
-  saveAuth();
-  renderProdHistory();
-  renderWarehouse();
+
+  if(auth.prod && !prodRows.length) addProdRow();
+  setActiveTab(mod, { skipLogout: true });
+  refreshAll();
+  toast(mod === 'adm' ? 'Administrador desbloqueado' : (mod === 'prod' ? 'Produccion desbloqueada' : 'Almacen desbloqueado'), 'ok');
 }
 
-function logoutModule(mod, options = {}){
+async function logoutModule(mod, options = {}){
   const { silent = false, reason = '' } = options;
-  const hadSession = !!auth[mod];
-  if(mod === 'prod'){ auth.prod = false; auth.prodUser = ''; auth.prodLogin = ''; }
-  if(mod === 'alm'){ auth.alm = false; auth.almUser = ''; auth.almLogin = ''; unlockedFolios.clear(); }
-  if(mod === 'adm'){ auth.adm = false; auth.admUser = ''; }
+  const hadSession = !!(auth.prod || auth.alm || auth.adm);
+  clearModuleAuthFlags();
   saveAuth();
   clearLoginFields(mod);
+  unlockedFolios.clear();
+  if(SUPABASE_ENABLED && supabaseClient){
+    try{ await supabaseClient.auth.signOut(); }catch(e){ console.error(e); }
+  }
   renderProdHistory();
   renderWarehouse();
   renderUsers();
@@ -3462,6 +3443,7 @@ function generateRequestCode(extra = []){
 }
 
 function updateTopCounts(){
+  
   const groups = new Map();
   for(const r of state.requests){
     const code = String(r.requestCode || '');
@@ -3960,12 +3942,19 @@ function renderUsers(){
     return;
   }
   const host = document.getElementById('user-list');
-  host.innerHTML = state.users.filter(u => !isMasterUserId(u.id)).map(u => `
+  if(!state.users.length){
+    host.innerHTML = `<div class="empty">Sin usuarios. Crea el perfil aqui y vincula auth_id (ver README).</div>`;
+    return;
+  }
+  host.innerHTML = state.users.map(u => {
+    const linked = u.auth_id ? 'Auth vinculado' : 'Sin auth_id';
+    const linkedClass = u.auth_id ? 'ok' : 'bad';
+    return `
     <div class="list-item">
       <div class="list-item-top">
         <div>
-          <div class="list-item-title">${escapeHtml(u.name)} <span class="pill">${escapeHtml(roleLabel(u.role))}</span></div>
-          <div class="list-item-sub">No. empleado: <strong>${escapeHtml(u.id)}</strong> · usuario: ${escapeHtml(u.user)}</div>
+          <div class="list-item-title">${escapeHtml(u.name)} <span class="pill">${escapeHtml(roleLabel(u.role))}</span> <span class="pill ${linkedClass}">${linked}</span></div>
+          <div class="list-item-sub">No. empleado: <strong>${escapeHtml(u.id)}</strong> · usuario: ${escapeHtml(u.user)} · email: ${escapeHtml(u.user)}@solimat.internal</div>
         </div>
         <div class="row-actions">
           <button class="btn btn-outline btn-sm" onclick="editUser('${escapeJs(u.id)}')">Editar</button>
@@ -3973,7 +3962,8 @@ function renderUsers(){
         </div>
       </div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
 
 function renderCatalog(){
@@ -4184,14 +4174,9 @@ async function saveUserAsync(){
   const name = document.getElementById('usr-name').value.trim();
   const emp = document.getElementById('usr-emp').value.trim();
   const user = document.getElementById('usr-user').value.trim();
-  let pass = document.getElementById('usr-pass').value.trim();
   const role = document.getElementById('usr-role').value;
-  if(!name || !emp || !user || (!pass && !editUserId)){
-    toast('Completa todos los campos del usuario', 'bad');
-    return;
-  }
-  if(isMasterUserId(emp)){
-    toast('ID de usuario reservado', 'bad');
+  if(!name || !emp || !user){
+    toast('Completa nombre, no. empleado y usuario', 'bad');
     return;
   }
   const normalizedRole = role === 'ambos' ? 'todos' : role;
@@ -4206,36 +4191,17 @@ async function saveUserAsync(){
     return;
   }
 
-  let storedPass = '';
-  if(pass){
-    storedPass = await hashPassword(pass);
-  }else if(editUserId){
-    if(SUPABASE_ENABLED){
-      try{
-        const { data } = await supabaseClient.from('usuarios').select('contrasena').eq('id', emp).maybeSingle();
-        storedPass = data?.contrasena || '';
-      }catch(e){
-        console.error(e);
-      }
-    }else{
-      const prev = state.users.find(x => String(x.id) === String(editUserId));
-      storedPass = prev?.pass || '';
-    }
-  }
-  if(!storedPass){
-    toast(editUserId ? 'Indica la contrasena o conserva la existente' : 'La contrasena es obligatoria', 'bad');
-    return;
-  }
-  if(storedPass && !isHashedPassword(storedPass) && !pass){
-    storedPass = await hashPassword(storedPass);
-  }
+  const prev = editUserId
+    ? state.users.find(x => String(x.id) === String(editUserId))
+    : null;
 
   const record = {
     id: emp,
     name,
     user,
-    pass: storedPass,
-    role: normalizedRole
+    pass: '',
+    role: normalizedRole,
+    auth_id: prev?.auth_id || null
   };
 
   if(editUserId){
@@ -4244,11 +4210,15 @@ async function saveUserAsync(){
   }else{
     state.users.push(record);
   }
+  const wasEdit = !!editUserId;
+  const needsAuthLink = !record.auth_id;
   editUserId = null;
   clearUserForm();
   try{
     await saveStateImmediate({ syncUsers: true });
-    toast('Usuario guardado', 'ok');
+    toast(needsAuthLink
+      ? 'Perfil guardado. Crea/vincula el usuario en Supabase Auth.'
+      : (wasEdit ? 'Perfil actualizado' : 'Perfil guardado'), 'ok');
   }catch(e){
     console.error(e);
     toast('Error al guardar en el servidor', 'bad');
@@ -4262,8 +4232,6 @@ function clearUserForm(){
   document.getElementById('usr-name').value = '';
   document.getElementById('usr-emp').value = '';
   document.getElementById('usr-user').value = '';
-  document.getElementById('usr-pass').value = '';
-  document.getElementById('usr-pass').placeholder = 'Clave (vacío = no cambiar al editar)';
   document.getElementById('usr-role').value = 'produccion';
   editUserId = null;
 }
@@ -4276,8 +4244,6 @@ function editUser(id){
   document.getElementById('usr-name').value = u.name;
   document.getElementById('usr-emp').value = u.id;
   document.getElementById('usr-user').value = u.user;
-  document.getElementById('usr-pass').value = '';
-  document.getElementById('usr-pass').placeholder = 'Dejar vacio para no cambiar';
   document.getElementById('usr-role').value = u.role === 'ambos' ? 'todos' : u.role;
   setActiveTab('adm');
 }
@@ -4409,33 +4375,46 @@ async function initApp(){
   }
 
   if(SUPABASE_ENABLED){
-    showLoading('Cargando datos del servidor...');
+    showLoading('Preparando sesion...');
     try{
-      const remote = await loadSupabaseState();
-      if(remote){
-        state = normalizeState(remote);
+      const restored = await restoreSupabaseAuthSession();
+      if(restored){
+        const remote = await loadSupabaseState();
+        if(remote){
+          state = normalizeState(remote);
+        }else{
+          state = defaultState();
+        }
+        lastRemoteSnapshot = JSON.stringify(normalizeState(state));
+        lastSyncAt = Date.now();
+        if(auth.adm){
+          try{ await loadSupabaseUsersAdmin(); }catch(e){ console.error(e); }
+        }
+        toast('Sesion restaurada — datos solo en servidor', 'ok');
       }else{
         state = defaultState();
-        await saveSupabaseState(state);
+        toast('Inicia sesion para cargar datos del servidor', 'ok');
       }
-      lastRemoteSnapshot = JSON.stringify(normalizeState(state));
-      lastSyncAt = Date.now();
-      toast('Conexion establecida — datos solo en servidor', 'ok');
     }catch(e){
       console.error(e);
       state = defaultState();
-      toast('No se pudo conectar al servidor de datos', 'bad');
+      toast('No se pudo restaurar la sesion. Inicia sesion de nuevo.', 'bad');
     }finally{
       hideLoading();
+    }
+
+    if(supabaseClient){
+      supabaseClient.auth.onAuthStateChange(async (event) => {
+        if(event === 'SIGNED_OUT'){
+          clearModuleAuthFlags();
+          saveAuth();
+          refreshAll();
+        }
+      });
     }
   }else if(SHAREPOINT_ENABLED){
     syncSharePointState();
   }
-
-  if(cleanupStaleMasterUsers()){
-    try{ await saveStateImmediate(); }catch(e){ console.error(e); }
-  }
-  restoreMasterKeySessionIfNeeded();
 
   scheduleRemoteSync();
   initCatalogUnitSelect('pza');

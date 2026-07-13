@@ -179,12 +179,9 @@ create policy "usuarios_public_access"
   with check (true);
 
 -- ------------------------------------------------------------
--- Sin datos de prueba. Crea el primer administrador desde Supabase:
---
--- insert into usuarios (id, nombre, usuario, contrasena, rol, activo)
--- values ('0001', 'Administrador', 'usuario', 'clave', 'admin', true);
---
--- O importa un JSON desde Administrador en la app.
+-- Sin datos de prueba. Tras Auth JWT:
+--   1) Crea usuario en Authentication → Users (email usuario@solimat.internal)
+--   2) Inserta perfil y vincula auth_id (ver supabase-auth-bootstrap.sql)
 -- ------------------------------------------------------------
 
 -- Si ya tenias la tabla creada, ejecuta esto para permitir rol "todos":

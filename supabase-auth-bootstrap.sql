@@ -1,0 +1,76 @@
+-- ============================================================
+-- SOLIMAT — Auth JWT BOOTSTRAP (paso 2)
+-- Vincular perfiles existentes con usuarios de Supabase Auth
+-- ============================================================
+--
+-- Prerrequisitos:
+--   1) Ejecutado supabase-auth-jwt.sql
+--   2) En Dashboard → Authentication → Providers: Email habilitado
+--   3) Preferible: Authentication → Settings →
+--        "Confirm email" desactivado (app interna)
+--   4) Crear cada usuario en Authentication → Users → Add user:
+--        Email:    {usuario}@solimat.internal
+--        Password: (la que usara en la app)
+--        Auto Confirm: yes
+--
+-- Luego vincula el UUID de auth.users con usuarios.auth_id
+-- ============================================================
+
+-- Listar usuarios Auth (para copiar el UUID):
+-- select id, email, created_at from auth.users order by created_at desc;
+
+-- Listar perfiles SOLIMAT pendientes de vincular:
+-- select id, nombre, usuario, rol, auth_id
+-- from usuarios
+-- where activo = true
+-- order by usuario;
+
+-- ------------------------------------------------------------
+-- Ejemplo A: vincular por email = usuario@solimat.internal
+-- ------------------------------------------------------------
+-- update usuarios u
+-- set auth_id = a.id,
+--     updated_at = now()
+-- from auth.users a
+-- where lower(a.email) = lower(u.usuario || '@solimat.internal')
+--   and u.auth_id is null;
+
+-- ------------------------------------------------------------
+-- Ejemplo B: vincular un usuario concreto
+-- ------------------------------------------------------------
+-- update usuarios
+-- set auth_id = 'UUID-DEL-USUARIO-EN-AUTH-USERS',
+--     updated_at = now()
+-- where lower(usuario) = 'admin';
+
+-- ------------------------------------------------------------
+-- Ejemplo C: crear perfil admin si no existe (tras crear Auth user)
+-- ------------------------------------------------------------
+-- insert into usuarios (id, nombre, usuario, contrasena, rol, activo, auth_id)
+-- values (
+--   '0001',
+--   'Administrador',
+--   'admin',
+--   null,
+--   'admin',
+--   true,
+--   'UUID-DEL-USUARIO-EN-AUTH-USERS'
+-- )
+-- on conflict (id) do update
+-- set auth_id = excluded.auth_id,
+--     nombre = excluded.nombre,
+--     rol = excluded.rol,
+--     activo = true,
+--     updated_at = now();
+
+-- ------------------------------------------------------------
+-- Verificacion: todos los activos deben tener auth_id
+-- ------------------------------------------------------------
+-- select usuario, rol, auth_id is not null as vinculado
+-- from usuarios
+-- where activo = true
+-- order by usuario;
+
+-- Cuando TODOS los usuarios activos esten vinculados y el login
+-- de la app funcione, ejecuta:
+--   supabase-auth-activate-rls.sql
