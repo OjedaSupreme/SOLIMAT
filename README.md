@@ -2,7 +2,7 @@
 
 **Solicitud de Material** — aplicación web para gestionar pedidos de material entre **Producción**, **Almacén** y **Administración**.
 
-Diseñada para el flujo operativo de Dana: crear solicitudes, verificar con código PIN, surtir y dar seguimiento al tiempo de atención.
+Diseñada para el flujo operativo de una empresa automotriz: crear solicitudes, verificar con código PIN, surtir y dar seguimiento al tiempo de atención.
 
 ---
 
