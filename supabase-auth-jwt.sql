@@ -50,7 +50,7 @@ security definer
 set search_path = public
 as $$
   select coalesce(
-    (select rol from usuarios where auth_id = auth.uid() and activo = true limit 1),
+    (select rol from public.usuarios where auth_id = auth.uid() and activo = true limit 1),
     ''
   );
 $$;
@@ -59,6 +59,8 @@ create or replace function public.is_authenticated()
 returns boolean
 language sql
 stable
+security definer
+set search_path = public
 as $$
   select auth.uid() is not null;
 $$;
@@ -70,7 +72,7 @@ stable
 security definer
 set search_path = public
 as $$
-  select current_user_rol() = any (roles);
+  select public.current_user_rol() = any (roles);
 $$;
 
 create or replace function public.current_user_profile()
