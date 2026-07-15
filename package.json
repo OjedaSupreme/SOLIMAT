@@ -1,0 +1,24 @@
+{
+  "name": "solimat",
+  "version": "1.0.0",
+  "description": "Solicitud de Material - aplicación web para gestionar pedidos de material entre Producción, Almacén y Administración.",
+  "main": "index.html",
+  "scripts": {
+    "dev": "npx serve .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OjedaSupreme/SOLIMAT.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/OjedaSupreme/SOLIMAT/issues"
+  },
+  "homepage": "https://github.com/OjedaSupreme/SOLIMAT#readme",
+  "dependencies": {
+    "@vercel/analytics": "^2.0.1"
+  }
+}
