@@ -10,7 +10,7 @@ Diseñada para el flujo operativo de una empresa automotriz: crear solicitudes, 
 
 | Módulo | Qué hace |
 |--------|----------|
-| **Producción** | Crea solicitudes por área y material, genera códigos PIN de 4 dígitos y consulta historial propio |
+| **Producción** | Crea solicitudes por área, prensa y material, genera códigos PIN de 4 dígitos y consulta historial propio |
 | **Almacén** | Toma órdenes, verifica el PIN, surte cantidades y actualiza estatus |
 | **Administración** | Catálogo BOM, usuarios, respaldos e importación/exportación |
 
@@ -55,6 +55,7 @@ DANA_project/
 ├── supabase-setup.sql                 # Esquema base de tablas
 ├── supabase-token-migration.sql       # Códigos PIN de verificación
 ├── supabase-progress-migration.sql    # Progreso de órdenes
+├── supabase-prensa-migration.sql      # Prensa por línea de solicitud
 ├── supabase-security.sql              # Login RPC legacy + hash (histórico)
 ├── supabase-auth-jwt.sql              # Auth: auth_id + helpers (PREPARE)
 ├── supabase-auth-bootstrap.sql        # Vincular Auth ↔ usuarios
@@ -80,6 +81,7 @@ cd DANA_project
    - `supabase-setup.sql`
    - `supabase-token-migration.sql`
    - `supabase-progress-migration.sql`
+   - `supabase-prensa-migration.sql`
    - `supabase-security.sql` (opcional / legacy)
 3. Copia las credenciales desde **Project Settings → API**.
 

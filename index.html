@@ -38,7 +38,7 @@
   body{
     margin:0;
     font-family:var(--font-ui);
-    font-size:14px;
+    font-size:16px;
     background-color:var(--bg);
     background-image:
       linear-gradient(rgba(0,0,0,.025) 1px, transparent 1px),
@@ -339,26 +339,27 @@
     border-bottom:1px solid var(--line);padding-bottom:18px;margin-bottom:20px;
   }
   .panel-title{
-    margin:0;font-family:var(--font-display);font-size:24px;font-weight:600;letter-spacing:.01em;
+    margin:0;font-family:var(--font-display);font-size:28px;font-weight:600;letter-spacing:.01em;
   }
-  .panel-sub{margin:6px 0 0;color:var(--muted);font-size:13px;line-height:1.5}
-  .field{display:flex;flex-direction:column;gap:7px;margin-bottom:14px}
+  .panel-sub{margin:6px 0 0;color:var(--muted);font-size:14px;line-height:1.5}
+  .field{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
   .field label{
-    font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+    font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);
   }
   .field input,.field select,.field textarea{
-    width:100%;padding:12px 14px;border:1px solid var(--line-strong);
-    border-radius:var(--radius);font:inherit;outline:none;
+    width:100%;padding:14px 16px;border:1px solid var(--line-strong);
+    border-radius:var(--radius);font:inherit;font-size:15px;outline:none;
     background:#fff;color:var(--text);transition:border-color .2s, box-shadow .2s;
+    min-height:50px;
   }
   .field input:focus,.field select:focus,.field textarea:focus{
     border-color:var(--brand);
     box-shadow:0 0 0 3px var(--brand-soft);
   }
-  .field textarea{min-height:100px;resize:vertical}
+  .field textarea{min-height:110px;resize:vertical}
   .btn{
-    border:none;border-radius:var(--radius);padding:12px 18px;
-    font-weight:600;font-size:12px;letter-spacing:.06em;text-transform:uppercase;
+    border:none;border-radius:var(--radius);padding:14px 20px;
+    font-weight:600;font-size:13px;letter-spacing:.06em;text-transform:uppercase;
     cursor:pointer;font:inherit;transition:all .22s ease;
   }
   .btn:hover{transform:translateY(-1px)}
@@ -373,12 +374,12 @@
   .btn-logout{background:var(--black);color:#fff;border:1px solid rgba(255,255,255,.1)}
   .btn-logout:hover{background:var(--bad)}
   .btn-ok{background:var(--ok-soft);color:var(--ok)}
-  .btn-sm{padding:8px 12px;font-size:10px}
+  .btn-sm{padding:10px 14px;font-size:11px}
   .stack{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
   .spacer{flex:1}
   .pill{
-    display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border-radius:var(--radius);
-    font-size:11px;font-weight:600;letter-spacing:.04em;
+    display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:var(--radius);
+    font-size:12px;font-weight:600;letter-spacing:.04em;
     background:var(--bg);color:var(--text);border:1px solid var(--line);
   }
   .pill.ok{background:var(--ok-soft);color:var(--ok);border-color:rgba(10,122,82,.2)}
@@ -396,10 +397,10 @@
   table{width:100%;border-collapse:collapse;min-width:980px;background:#fff}
   thead th{
     position:sticky;top:0;background:var(--black);color:#fff;text-align:left;
-    padding:14px 14px;font-size:10px;text-transform:uppercase;letter-spacing:.12em;
+    padding:15px 14px;font-size:11px;text-transform:uppercase;letter-spacing:.12em;
     white-space:nowrap;font-weight:600;border-bottom:2px solid var(--brand);
   }
-  tbody td{padding:13px 14px;border-top:1px solid var(--line);vertical-align:middle;font-size:13px}
+  tbody td{padding:14px 14px;border-top:1px solid var(--line);vertical-align:middle;font-size:14px}
   tbody tr{transition:background .15s ease}
   tbody tr:hover{background:var(--brand-soft)}
   .badge{
@@ -413,28 +414,29 @@
   .row-actions{display:flex;gap:8px;flex-wrap:wrap}
   .req-row{
     border:1px solid var(--line);border-radius:var(--radius-lg);
-    padding:18px 20px;margin-bottom:14px;background:#fff;
+    padding:22px 22px;margin-bottom:16px;background:#fff;
     border-left:3px solid var(--brand);
   }
-  .req-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:16px}
-  .req-title{font-family:var(--font-display);font-size:18px;font-weight:600}
+  .req-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:18px}
+  .req-title{font-family:var(--font-display);font-size:22px;font-weight:600}
   .req-grid{
     display:grid;
-    grid-template-columns:minmax(108px,.95fr) minmax(118px,1.05fr) minmax(140px,1.45fr) minmax(76px,.62fr) minmax(104px,.78fr);
+    grid-template-columns:minmax(130px,1fr) minmax(115px,.95fr) minmax(125px,1.05fr) minmax(140px,1.3fr) minmax(72px,.55fr) minmax(84px,.6fr);
     gap:14px;align-items:end;
   }
+  .req-grid .field-qty input{max-width:100%}
   .field-unit .unit-display{
-    min-height:44px;display:flex;align-items:center;justify-content:center;
-    padding:11px 14px;border:1px solid var(--line-strong);border-radius:var(--radius);
-    background:var(--bg);font-weight:700;font-size:14px;letter-spacing:.06em;
+    min-height:50px;display:flex;align-items:center;justify-content:center;
+    padding:12px 14px;border:1px solid var(--line-strong);border-radius:var(--radius);
+    background:var(--bg);font-weight:700;font-size:15px;letter-spacing:.06em;
     color:var(--brand);text-transform:uppercase;
   }
   .field-unit .unit-display.empty{color:var(--muted);font-weight:500;text-transform:none}
   .muted{color:var(--muted)}
-  .small{font-size:12px}
+  .small{font-size:13px}
   .empty{
-    padding:32px;border:1px dashed var(--line-strong);border-radius:var(--radius-lg);
-    text-align:center;color:var(--muted);font-size:13px;letter-spacing:.02em;
+    padding:36px;border:1px dashed var(--line-strong);border-radius:var(--radius-lg);
+    text-align:center;color:var(--muted);font-size:14px;letter-spacing:.02em;
   }
   .two-col{display:grid;grid-template-columns:1fr 1fr;gap:18px}
   .list{display:flex;flex-direction:column;gap:10px;max-height:420px;overflow:auto;padding-right:4px}
@@ -495,8 +497,8 @@
     .grid-2,.grid-2.prod-layout,.two-col{grid-template-columns:1fr}
     .alm-workspace{grid-template-columns:1fr}
     .summary{grid-template-columns:repeat(2,minmax(0,1fr))}
-    .req-grid{grid-template-columns:1fr 1fr minmax(76px,.55fr) minmax(104px,.7fr)}
-    .req-grid .field:nth-child(3){grid-column:1 / -1}
+    .req-grid{grid-template-columns:minmax(120px,1fr) minmax(115px,1fr) minmax(125px,1.1fr) minmax(72px,.55fr) minmax(84px,.6fr)}
+    .req-grid .field:nth-child(4){grid-column:1 / -1}
   }
   @media (max-width:700px){
     .container{padding:16px}
@@ -723,6 +725,7 @@
                   <thead>
                     <tr>
                       <th>Fecha</th>
+                      <th>Prensa</th>
                       <th>No. Parte</th>
                       <th>Codigo</th>
                       <th>Descripcion</th>
@@ -950,6 +953,19 @@ const LEGACY_STORAGE_KEYS = ['dana_material_local_v2', 'dana_material_local_v1']
 const SESSION_TIMEOUT_MS = 60 * 60 * 1000;
 const AUTH_EMAIL_DOMAIN = 'solimat.internal';
 const CATALOG_UNITS = ['pza', 'kg', 'g', 'L', 'm', 'm²', 'rollo', 'caja', 'lt', 'gal'];
+/** Lista fija de prensas por linea de solicitud. Edita aqui para agregar/quitar. */
+const PRENSAS = [
+  'KOMATSU 300 (PRET-01)',
+  'KOMATSU 200 (PRET-02)',
+  'MINSTER 160 (PRET-03)',
+  'SEYI (PRET-04)',
+  'MINSTER 100 (PRET-05)',
+  'TRI CITY 1 (PRET-06)',
+  'TRY CITY 2 (PRET-07)',
+  'KOMATSU 45 (PRET-08)',
+  'VEGO (PRET-09)',
+  'TRI CITY 4 (PRET-39)'
+];
 const BACKUP_INTERVAL_MS = 10 * 60 * 1000;
 const REMOTE_DB_REQUIRED = true;
 const BACKUP_DB_NAME = 'dana_material_backup_db_v1';
@@ -1059,6 +1075,7 @@ function normalizeState(input){
   }));
   normalized.requests = normalized.requests.map(r => ({
     ...r,
+    prensa: String(r.prensa || '').trim(),
     supplyProgress: normalizeProgress(r.supplyProgress),
     supplyProgressBy: String(r.supplyProgressBy || ''),
     supplyProgressAt: String(r.supplyProgressAt || '')
@@ -1343,7 +1360,7 @@ function getFilteredAlmRows(){
   let rows = [...state.requests];
   if(filter) rows = rows.filter(r => r.status === filter);
   if(search){
-    rows = rows.filter(r => [r.area,r.part,r.code,r.desc,r.unit,r.requester,r.suppliedBy,r.requestCode,String(r.id)].some(v => String(v || '').toLowerCase().includes(search)));
+    rows = rows.filter(r => [r.area,r.prensa,r.part,r.code,r.desc,r.unit,r.requester,r.suppliedBy,r.requestCode,String(r.id)].some(v => String(v || '').toLowerCase().includes(search)));
   }
   return rows;
 }
@@ -1435,7 +1452,7 @@ function renderAlmDetailHead(folio, folioRows, visibleRows){
 
 function renderAlmTableRows(rows, visibleRows){
   if(!rows.length){
-    return `<tr><td colspan="11"><div class="empty" style="margin:12px">Sin lineas para este folio.</div></td></tr>`;
+    return `<tr><td colspan="12"><div class="empty" style="margin:12px">Sin lineas para este folio.</div></td></tr>`;
   }
   return rows.map(r => {
     const unit = requestUnit(r);
@@ -1453,6 +1470,7 @@ function renderAlmTableRows(rows, visibleRows){
     return `
     <tr class="${rowClass}">
       <td>${escapeHtml(r.createdAt || '—')}</td>
+      <td>${escapeHtml(r.prensa || '—')}</td>
       <td>${escapeHtml(r.part)}</td>
       <td>${escapeHtml(r.code)}</td>
       <td>${escapeHtml(r.desc)}</td>
@@ -2256,6 +2274,7 @@ async function loadSupabaseState(options = {}){
       createdAt: header.fecha_creacion || '',
       requester: header.solicitado_por || header.solicitado_por_usuario || '',
       area: header.area || '',
+      prensa: d.prensa || '',
       part: d.no_parte || '',
       code: d.material_codigo || '',
       desc: d.descripcion || '',
@@ -2383,6 +2402,7 @@ async function saveSupabaseState(nextState, options = {}){
     item => ({
       line_key: String(item.lineKey || `${item.requestCode}-${item.id}`),
       folio_solicitud: String(item.requestCode || ''),
+      prensa: String(item.prensa || ''),
       no_parte: String(item.part || ''),
       material_codigo: String(item.code || ''),
       descripcion: String(item.desc || ''),
@@ -2608,7 +2628,7 @@ function serializeExportTxt(payload, include){
     payload.requests.forEach(r => {
       const unit = requestUnit(r);
       lines.push(
-        `Folio ${r.requestCode} | ${r.createdAt} | ${r.area} | ${r.part} | ${r.code} | ${r.desc} | ${unit} | Sol: ${r.qtyRequested} | Sur: ${r.qtySupplied || 0} | ${r.status} | ${r.requester}`
+        `Folio ${r.requestCode} | ${r.createdAt} | ${r.area} | ${r.prensa || '—'} | ${r.part} | ${r.code} | ${r.desc} | ${unit} | Sol: ${r.qtyRequested} | Sur: ${r.qtySupplied || 0} | ${r.status} | ${r.requester}`
       );
     });
   }
@@ -2645,7 +2665,7 @@ function serializeExportCsv(payload, include){
   if(include.requests && payload.requests?.length){
     blocks.push('# SOLICITUDES');
     blocks.push([
-      'Solicitud','Fecha','Area','No. Parte','Codigo','Descripcion','Unidad',
+      'Solicitud','Fecha','Area','Prensa','No. Parte','Codigo','Descripcion','Unidad',
       'Solicitado','Surtido','Estatus','Solicitado por','Surtido por','Atendida en','Tiempo (min)'
     ].map(csvCell).join(','));
     payload.requests.forEach(r => {
@@ -2654,6 +2674,7 @@ function serializeExportCsv(payload, include){
         csvCell(r.requestCode || ''),
         csvDateCell(r.createdAt),
         csvCell(r.area),
+        csvCell(r.prensa || ''),
         csvCell(r.part),
         csvCell(r.code),
         csvCell(r.desc),
@@ -2940,7 +2961,7 @@ function loadSharePointState(options = {}){
   const { includeUsers = true } = options;
   if(!SHAREPOINT_ENABLED) return null;
   const solicitudes = spGetItems(SHAREPOINT_LISTS.solicitudes, 'Id,Title,Folio,SolicitadoPor,SolicitadoPorUsuario,Area,Estatus,FechaCreacion,FechaAtendida,SurtidoPor,TiempoAtencionMin,Observaciones,TokenVerificacion,TokenHash,Progreso,ProgresoPor,ProgresoEn');
-  const detalles = spGetItems(SHAREPOINT_LISTS.detalles, 'Id,Title,FolioSolicitud,NoParte,MaterialCodigo,Descripcion,UnidadMedida,CantidadSolicitada,CantidadSurtida,EstatusLinea,SurtidoPor,FechaAtendida');
+  const detalles = spGetItems(SHAREPOINT_LISTS.detalles, 'Id,Title,FolioSolicitud,Prensa,NoParte,MaterialCodigo,Descripcion,UnidadMedida,CantidadSolicitada,CantidadSurtida,EstatusLinea,SurtidoPor,FechaAtendida');
   const catalogo = spGetItems(SHAREPOINT_LISTS.catalogo, 'Id,Title,Area,NoParte,MaterialCodigo,Descripcion,UnidadMedida,Activo');
   const usuarios = includeUsers
     ? spGetItems(SHAREPOINT_LISTS.usuarios, 'Id,Title,Nombre,NoEmpleado,Usuario,Contrasena,Rol,Activo')
@@ -2959,6 +2980,7 @@ function loadSharePointState(options = {}){
       createdAt: header.FechaCreacion || '',
       requester: header.SolicitadoPor || header.SolicitadoPorUsuario || '',
       area: header.Area || '',
+      prensa: d.Prensa || '',
       part: d.NoParte || '',
       code: d.MaterialCodigo || '',
       desc: d.Descripcion || '',
@@ -3076,6 +3098,7 @@ function saveSharePointState(nextState, options = {}){
     item => ({
       Title: String(item.lineKey || `${item.requestCode}-${item.id}`),
       FolioSolicitud: String(item.requestCode || ''),
+      Prensa: String(item.prensa || ''),
       NoParte: String(item.part || ''),
       MaterialCodigo: String(item.code || ''),
       Descripcion: String(item.desc || ''),
@@ -3086,7 +3109,7 @@ function saveSharePointState(nextState, options = {}){
       SurtidoPor: String(item.suppliedBy || ''),
       FechaAtendida: String(item.suppliedAt || '')
     }),
-    ['Id','Title','FolioSolicitud','NoParte','MaterialCodigo','Descripcion','UnidadMedida','CantidadSolicitada','CantidadSurtida','EstatusLinea','SurtidoPor','FechaAtendida']
+    ['Id','Title','FolioSolicitud','Prensa','NoParte','MaterialCodigo','Descripcion','UnidadMedida','CantidadSolicitada','CantidadSurtida','EstatusLinea','SurtidoPor','FechaAtendida']
   );
   return normalized;
 }
@@ -3411,6 +3434,9 @@ function requireAuth(mod){
 function getAreas(){
   return [...new Set(state.catalog.map(x => x.area).filter(Boolean))].sort();
 }
+function getPrensas(){
+  return PRENSAS.slice();
+}
 function getParts(area){
   return [...new Set(state.catalog.filter(x => x.area === area).map(x => x.part).filter(Boolean))].sort();
 }
@@ -3508,6 +3534,7 @@ function addProdRow(){
   const row = {
     id: Date.now() + Math.random(),
     area,
+    prensa: '',
     part: getParts(area)[0] || '',
     code: '',
     qty: 1
@@ -3523,6 +3550,7 @@ function duplicateProdRow(id){
   prodRows.push({
     id: Date.now() + Math.random(),
     area: source.area,
+    prensa: source.prensa || '',
     part: source.part,
     code: '',
     qty: 1
@@ -3559,12 +3587,13 @@ function renderProdRows(){
     const mats = getMaterials(row.part);
     const selectedMat = mats.find(m => String(m.id) === String(row.code)) || {};
     const unit = selectedMat.unit || 'pza';
+    const prensas = getPrensas();
     return `
       <div class="req-row" data-row="${row.id}">
         <div class="req-head">
           <div>
             <div class="req-title">Linea de solicitud</div>
-            <div class="muted small">Area: ${escapeHtml(row.area || '')} · NP: ${escapeHtml(row.part || 'Sin seleccionar')}${selectedMat.code ? ` · Unidad: ${escapeHtml(unit)}` : ''}</div>
+            <div class="muted small">Area: ${escapeHtml(row.area || '')}${row.prensa ? ` · Prensa: ${escapeHtml(row.prensa)}` : ''} · NP: ${escapeHtml(row.part || 'Sin seleccionar')}${selectedMat.code ? ` · Unidad: ${escapeHtml(unit)}` : ''}</div>
           </div>
           <div class="row-actions">
             <button class="btn btn-outline btn-sm" onclick="duplicateProdRow(${row.id})">+ Material</button>
@@ -3572,6 +3601,13 @@ function renderProdRows(){
           </div>
         </div>
         <div class="req-grid">
+          <div class="field">
+            <label>Prensa</label>
+            <select onchange="updateProdRow(${row.id}, 'prensa', this.value)">
+              <option value="">Seleccione</option>
+              ${prensas.map(p => `<option value="${escapeHtml(p)}" ${p === row.prensa ? 'selected' : ''}>${escapeHtml(p)}</option>`).join('')}
+            </select>
+          </div>
           <div class="field">
             <label>No. parte</label>
             <select onchange="updateProdRow(${row.id}, 'part', this.value)">
@@ -3593,8 +3629,8 @@ function renderProdRows(){
             <label>Unidad</label>
             <div class="unit-display ${selectedMat.code ? '' : 'empty'}">${escapeHtml(selectedMat.code ? unit : '—')}</div>
           </div>
-          <div class="field">
-            <label>Cantidad</label>
+          <div class="field field-qty">
+            <label>Cant.</label>
             <input type="number" min="1" value="${row.qty}" placeholder="${escapeHtml(unit)}" onchange="updateProdRow(${row.id}, 'qty', this.value)">
           </div>
         </div>
@@ -3610,6 +3646,8 @@ function updateProdRow(id, key, value){
   if(key === 'part'){
     row.part = value;
     row.code = '';
+  }else if(key === 'prensa'){
+    row.prensa = value;
   }else if(key === 'code'){
     row.code = value;
   }else if(key === 'qty'){
@@ -3639,6 +3677,18 @@ async function submitProd(){
     toast('Agrega al menos una linea', 'bad');
     return;
   }
+  if(prodRows.some(row => !String(row.prensa || '').trim())){
+    toast('Selecciona la prensa en cada linea', 'bad');
+    return;
+  }
+  const missingMaterial = prodRows.some(row => {
+    const mats = getMaterials(row.part);
+    return !mats.find(m => String(m.id) === String(row.code));
+  });
+  if(missingMaterial){
+    toast('Selecciona materiales validos en todas las lineas', 'bad');
+    return;
+  }
   if(SHAREPOINT_ENABLED){
     refreshStateFromRemote();
   }else if(SUPABASE_ENABLED){
@@ -3661,6 +3711,7 @@ async function submitProd(){
       createdAt: fmtDT(),
       requester,
       area: row.area,
+      prensa: String(row.prensa || '').trim(),
       part: row.part,
       code: mat.code,
       desc: mat.desc,
@@ -3723,7 +3774,8 @@ function renderProdHistory(){
     const dateLabel = status === 'pendiente' ? first.createdAt : (attendedAt || first.createdAt);
     const linesText = rows.map(r => {
       const unit = requestUnit(r);
-      return `${r.part} · ${formatQty(r.qtyRequested, unit)}`;
+      const prensa = r.prensa ? `${r.prensa} · ` : '';
+      return `${prensa}${r.part} · ${formatQty(r.qtyRequested, unit)}`;
     }).join(' · ');
     const codeLine = first.supplyToken
       ? `<div class="list-item-sub" style="margin-top:6px">Codigo: <strong>${escapeHtml(first.supplyToken)}</strong></div>`
@@ -3750,7 +3802,7 @@ function renderWarehouse(){
   const panel = document.getElementById('alm-verify-panel');
   if(!auth.alm){
     if(listHost) listHost.innerHTML = '<div class="empty">Inicia sesion de Almacen</div>';
-    if(tbody) tbody.innerHTML = `<tr><td colspan="11"><div class="empty" style="margin:12px">Inicia sesion de Almacen para ver y modificar solicitudes.</div></td></tr>`;
+    if(tbody) tbody.innerHTML = `<tr><td colspan="12"><div class="empty" style="margin:12px">Inicia sesion de Almacen para ver y modificar solicitudes.</div></td></tr>`;
     renderAlmDetailHead('', [], []);
     if(panel) panel.classList.add('hidden');
     return;
@@ -3778,7 +3830,7 @@ function renderWarehouse(){
   const detailRows = filtered.filter(r => String(r.requestCode) === String(selectedAlmFolio));
   if(tbody){
     if(!entries.length){
-      tbody.innerHTML = `<tr><td colspan="11"><div class="empty" style="margin:12px">Sin resultados.</div></td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="12"><div class="empty" style="margin:12px">Sin resultados.</div></td></tr>`;
     }else{
       tbody.innerHTML = renderAlmTableRows(detailRows, filtered);
     }
@@ -3792,13 +3844,13 @@ function exportWarehouseExcel(){
   let rows = [...state.requests];
   if(filter) rows = rows.filter(r => r.status === filter);
   if(search){
-    rows = rows.filter(r => [r.area,r.part,r.code,r.desc,r.unit,r.requester,r.suppliedBy,r.requestCode,String(r.id)].some(v => String(v || '').toLowerCase().includes(search)));
+    rows = rows.filter(r => [r.area,r.prensa,r.part,r.code,r.desc,r.unit,r.requester,r.suppliedBy,r.requestCode,String(r.id)].some(v => String(v || '').toLowerCase().includes(search)));
   }
   if(!rows.length){
     toast('No hay datos para exportar', 'bad');
     return;
   }
-  const headers = ['Solicitud','Fecha','Area','No. Parte','Codigo','Descripcion','Unidad','Solicitado','Surtido','Estatus','Progreso','Solicitado por','Surtido por','Atendida en','Tiempo (min)'];
+  const headers = ['Solicitud','Fecha','Area','Prensa','No. Parte','Codigo','Descripcion','Unidad','Solicitado','Surtido','Estatus','Progreso','Solicitado por','Surtido por','Atendida en','Tiempo (min)'];
   const csv = [
     headers.join(','),
     ...rows.map(r => {
@@ -3807,6 +3859,7 @@ function exportWarehouseExcel(){
       csvCell(r.requestCode || ''),
       csvDateCell(r.createdAt),
       csvCell(r.area),
+      csvCell(r.prensa || ''),
       csvCell(r.part),
       csvCell(r.code),
       csvCell(r.desc),

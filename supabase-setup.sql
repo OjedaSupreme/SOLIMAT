@@ -54,6 +54,7 @@ create table if not exists solicitud_detalles (
   surtido_por text not null default '',
   fecha_atendida text not null default '',
   unidad_medida text not null default 'pza',
+  prensa text not null default '',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -61,6 +62,7 @@ create table if not exists solicitud_detalles (
 create index if not exists idx_detalles_folio on solicitud_detalles (folio_solicitud);
 create index if not exists idx_detalles_estatus on solicitud_detalles (estatus_linea);
 create index if not exists idx_detalles_material on solicitud_detalles (material_codigo);
+create index if not exists idx_detalles_prensa on solicitud_detalles (prensa);
 
 -- ------------------------------------------------------------
 -- 3. Catalogo BOM (materiales por area y parte)
